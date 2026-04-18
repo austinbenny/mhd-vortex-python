@@ -23,4 +23,7 @@ data/tree.txt
 *.blg
 *.bcf
 *.run.xml
+*.nav
+*.snm
+*.vrb
 _minted-*/
