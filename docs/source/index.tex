@@ -125,6 +125,74 @@ a numerical flux at every face, and every numerical flux is obtained
 by solving an approximate Riemann problem between piecewise
 reconstructed left and right states.
 
+\Cref{fig:stencil} is a schematic of the MUSCL stencil used for the
+x-direction Riemann problem on one row of cells.  Two ghost layers
+are required on every side of the interior so that the three-cell
+stencil $U_{i-1},U_i,U_{i+1}$ that feeds the slope-limited
+reconstruction is always available.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.95cm, y=0.95cm]
+  % Ghost layers (shaded).
+  \foreach \i in {0,1,6,7} {
+    \fill[gray!20] (\i,0) rectangle ({\i+1},1);
+  }
+  % Interior cells.
+  \foreach \i in {2,3,4,5} {
+    \draw (\i,0) rectangle ({\i+1},1);
+  }
+  % Ghost cell outlines too.
+  \foreach \i in {0,1,6,7} {
+    \draw (\i,0) rectangle ({\i+1},1);
+  }
+  % Labels.
+  \node at (0.5,0.5) {$U_{-2}$};
+  \node at (1.5,0.5) {$U_{-1}$};
+  \node at (2.5,0.5) {$U_{i-1}$};
+  \node at (3.5,0.5) {$U_{i}$};
+  \node at (4.5,0.5) {$U_{i+1}$};
+  \node at (5.5,0.5) {$U_{i+2}$};
+  \node at (6.5,0.5) {$U_{n}$};
+  \node at (7.5,0.5) {$U_{n+1}$};
+  % Highlighted face.
+  \draw[red, thick] (4,-0.1) -- (4,1.1);
+  \node[red, below] at (4,-0.2) {$x_{i+1/2}$};
+  % Reconstructed states at the face.
+  \node[below] at (3.75,-0.8) {$Q_{L}$};
+  \node[below] at (4.25,-0.8) {$Q_{R}$};
+  \draw[->, thick] (3.0,-0.6) -- (3.9,-0.6);
+  \draw[<-, thick] (4.1,-0.6) -- (5.0,-0.6);
+  % Brace for ghost + interior.
+  \draw[decorate, decoration={brace, amplitude=4pt}]
+    (0,1.2) -- (2,1.2) node[midway, above=4pt] {\scriptsize ghost};
+  \draw[decorate, decoration={brace, amplitude=4pt}]
+    (2,1.2) -- (6,1.2) node[midway, above=4pt] {\scriptsize interior};
+  \draw[decorate, decoration={brace, amplitude=4pt}]
+    (6,1.2) -- (8,1.2) node[midway, above=4pt] {\scriptsize ghost};
+\end{tikzpicture}
+\caption{MUSCL stencil on one x-row.  Two ghost layers sandwich the
+interior; the red face $x_{i+1/2}$ sees a left-biased reconstruction
+$Q_{L}$ from cell $i$ and a right-biased reconstruction $Q_{R}$ from
+cell $i+1$, and the HLLD flux at that face is computed from the pair.}
+\label{fig:stencil}
+\end{figure}
+
+\Cref{fig:mesh-preview} shows the actual discretization used by the
+production $128\times 128$ run, with the Orszag-Tang initial velocity
+(blue) and initial magnetic field (red) overlaid on the cell grid.
+The grid lines are thinned by a factor of two for legibility; every
+cell is a unit of the finite-volume update.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{data/final/mesh_preview/figs/mesh_preview.pdf}
+\caption{Computational mesh with the Orszag-Tang initial conditions
+overlaid.  Left: initial velocity field.  Right: initial magnetic
+field.  Both are sampled on a coarse grid for clarity.}
+\label{fig:mesh-preview}
+\end{figure}
+
 \subsection{Spatial reconstruction: MUSCL}
 
 The reconstruction is piecewise linear in the primitive variables

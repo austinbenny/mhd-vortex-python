@@ -11,6 +11,7 @@
 \graphicspath{
   {../data/final/orszag_tang_128/figs/}
   {../data/final/convergence/figs/}
+  {../data/final/mesh_preview/figs/}
   {../docs/source/figs/}
 }
 
@@ -98,6 +99,17 @@
 %==========================================================
 \section{Numerical Model}
 %==========================================================
+
+\begin{frame}{Computational mesh}
+  \centering
+  \includegraphics[width=0.95\textwidth]{mesh_preview.pdf}
+  \vspace{-0.5em}
+  \begin{itemize}\scriptsize
+    \item Uniform $128\times 128$ Cartesian grid, $\Delta x = \Delta y = 1/128$.
+    \item Two ghost layers on every side (periodic fills for Orszag-Tang).
+    \item Left: initial velocity; right: initial magnetic field.
+  \end{itemize}
+\end{frame}
 
 \begin{frame}{Scheme at a glance}
   \begin{itemize}
