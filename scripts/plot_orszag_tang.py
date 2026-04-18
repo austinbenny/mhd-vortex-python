@@ -97,7 +97,11 @@ def plot_snapshot(snap_path: Path, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     _plot_contour(rho, extent, f"density at t={t:.3f}", out_dir / f"rho_{tag}.pdf")
     _plot_contour(
-        p, extent, f"thermal pressure at t={t:.3f}", out_dir / f"p_{tag}.pdf", cmap="magma"
+        p,
+        extent,
+        f"thermal pressure at t={t:.3f}",
+        out_dir / f"p_{tag}.pdf",
+        cmap="magma",
     )
     _plot_contour(
         pmag,
