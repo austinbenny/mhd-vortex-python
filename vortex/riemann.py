@@ -59,7 +59,7 @@ def hlld_x(
     F : array of shape ``(NVAR, nfaces_x, nfaces_y)``
         Conservative flux at each face.
     """
-    # --- GLM: resolve Bx and psi from their 1D Riemann problem ---------------
+    # GLM: resolve Bx and psi from their 1D Riemann problem.
     bxL, bxR = QL[IBX], QR[IBX]
     psiL, psiR = QL[IPSI], QR[IPSI]
     bx_star = 0.5 * (bxL + bxR) - 0.5 * (psiR - psiL) / ch
@@ -72,7 +72,7 @@ def hlld_x(
     QL[IBX] = bx_star
     QR[IBX] = bx_star
 
-    # --- Primitives ----------------------------------------------------------
+    # Unpack primitive states.
     rhoL, uL, vL, wL = QL[IRHO], QL[IMX], QL[IMY], QL[IMZ]
     byL, bzL = QL[IBY], QL[IBZ]
     pL = QL[IEN]
@@ -192,7 +192,7 @@ def hlld_x(
     EL_ss = EL_s - sqrt_rhoL_s * (vdotbL_s - vdotb_dbl) * sign_bn
     ER_ss = ER_s + sqrt_rhoR_s * (vdotbR_s - vdotb_dbl) * sign_bn
 
-    # --- Build conservative * and ** states ---------------------------------
+    # Assemble conservative star and double-star states.
     UL_s = _assemble(rhoL_s, SM, vL_s, wL_s, bxN, byL_s, bzL_s, EL_s, psi_star)
     UR_s = _assemble(rhoR_s, SM, vR_s, wR_s, bxN, byR_s, bzR_s, ER_s, psi_star)
     UL_ss = _assemble(rhoL_s, SM, v_dbl, w_dbl, bxN, by_dbl, bz_dbl, EL_ss, psi_star)
