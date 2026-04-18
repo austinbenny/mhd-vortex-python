@@ -19,15 +19,11 @@ all: $(TARGET).pdf
 
 data/tree.txt:
 	@mkdir -p data/final
-	tree -I "__pycache__|*.pyc|*.egg-info|.DS_Store" hw data/final > $@
-
-# data/final/part_a: hw/problem_1/part_a.py hw/solvers.py
-# 	$(PYTHON) $(PYFLAGS) -m hw.problem_1.part_a
-# 	@touch $@
+	tree -I "__pycache__|*.pyc|*.egg-info|.DS_Store" vortex scripts data/final > $@ 2>/dev/null || true
 
 scripts:
 
-$(TARGET).pdf: $(SRC) data/tree.txt
+$(TARGET).pdf: $(SRC)
 	@mkdir -p $(BUILD_DIR)
 	PATH="$$(pwd)/.venv/bin:$$PATH" $(LATEXMK) $(LATEXMK_FLAGS) $(SRC)
 
@@ -35,13 +31,13 @@ docs: $(TARGET).pdf
 
 clean:
 	rm -rf $(BUILD_DIR)
-	rm -rf data/final
+	rm -rf data/interim
 	rm -f data/tree.txt
 	rm -f package.zip $(TARGET).pdf $(TARGET).synctex.gz
 
 package: clean
 	@rm -f package.zip
-	zip -r package.zip data docs hw Makefile pyproject.toml uv.lock \
+	zip -r package.zip docs vortex scripts meshes tests Makefile pyproject.toml uv.lock \
 	-x "*/__pycache__/*" \
 	-x "*/.DS_Store" \
 	-x "docs/build/*"

@@ -1,0 +1,289 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb, bm}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{booktabs}
+
+\graphicspath{{../docs/source/figs/}}
+
+\title[2D Ideal MHD]{2D Ideal MHD Solver on the Orszag-Tang Vortex}
+\subtitle{ME-7751 Final Project}
+\author{Austin Benny}
+\institute{}
+\date{\today}
+
+\begin{document}
+
+%----------------------------------------------------------
+\begin{frame}
+  \titlepage
+\end{frame}
+
+%----------------------------------------------------------
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+%==========================================================
+\section{Introduction and Problem Motivation}
+%==========================================================
+
+\begin{frame}{Why MHD}
+  \begin{itemize}
+    \item Magnetohydrodynamics couples fluid flow and magnetic field through the Lorentz force.
+    \item Valid when plasma is collisional and magnetic Reynolds number is large:
+          solar wind, tokamaks, astrophysical jets, magnetospheres.
+    \item New physics vs Euler: Alfven and fast/slow magnetosonic waves,
+          the Maxwell stress, and the constraint $\nabla\cdot B = 0$.
+  \end{itemize}
+  \vspace{0.5em}
+  \textbf{Project goal.} Build a 2D ideal MHD finite-volume solver in Python and validate it on the Orszag-Tang vortex.
+\end{frame}
+
+\begin{frame}{Why Orszag-Tang}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \begin{itemize}
+        \item Canonical 2D MHD benchmark.
+        \item All-sinusoidal ICs on $[0,1]^{2}$, periodic on every side.
+        \item No geometry, no density jump, no outflow BCs.
+        \item If the result is wrong, it is the solver, not the setup.
+        \item Reference: Londrillo \& Del Zanna 2000, Athena test suite.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \includegraphics[width=\linewidth]{ot128_rho.pdf}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%==========================================================
+\section{Mathematical Model}
+%==========================================================
+
+\begin{frame}{Ideal MHD in conservative form}
+  \begin{equation*}
+  \frac{\partial U}{\partial t} + \frac{\partial F}{\partial x} + \frac{\partial G}{\partial y} = 0,
+  \quad
+  U = (\rho,\; \rho\mathbf{v},\; \mathbf{B},\; E)^{T}
+  \end{equation*}
+  with total energy
+  $E = p/(\gamma-1) + \tfrac{1}{2}\rho|\mathbf{v}|^{2} + \tfrac{1}{2}|\mathbf{B}|^{2}$
+  and total pressure $p_T = p + \tfrac{1}{2}|\mathbf{B}|^{2}$.
+  \begin{itemize}
+    \item Eight conserved variables; all three velocity and field components are carried in 2D.
+    \item Seven-wave fan: two fast magnetosonic, two Alfven, two slow magnetosonic, one entropy.
+    \item Ideal-gas closure, $\gamma = 5/3$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The divergence constraint}
+  \begin{itemize}
+    \item Exact ideal MHD preserves $\nabla\cdot B = 0$ analytically.
+    \item A piecewise-constant Godunov update does not: centered finite-differences produce spurious divergence at cell centers.
+    \item Consequences: parallel-to-B Lorentz force, loss of momentum conservation, eventual blow-up.
+    \item Remedies: constrained transport, Powell source terms, or hyperbolic GLM cleaning.
+    \item \textbf{This project uses GLM}: simpler to drop into an unstaggered FVM code, only adds one scalar $\psi$.
+  \end{itemize}
+\end{frame}
+
+%==========================================================
+\section{Numerical Model}
+%==========================================================
+
+\begin{frame}{Scheme at a glance}
+  \begin{itemize}
+    \item 2D structured Cartesian grid, cell-centered state, two ghost layers.
+    \item MUSCL linear reconstruction on primitives with minmod limiter (MC, van Leer optional).
+    \item HLLD Riemann solver (Miyoshi \& Kusano 2005) at every interface; degenerates to HLLC for B = 0.
+    \item GLM psi/Bx coupling handled inside the Riemann solver; parabolic damping applied per RK stage.
+    \item SSP-RK2 time integration, CFL = 0.3.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{HLLD wave pattern}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \begin{itemize}
+        \item Five-wave approximation to the full seven-wave MHD fan.
+        \item Bounding speeds $S_L, S_R$: Davis-Einfeldt.
+        \item Entropy speed $S_M$ from jump conditions at the contact wave.
+        \item Two starred states and two double-starred states (across the rotational Alfven discontinuities).
+        \item Positivity-preserving for physical inputs.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \centering
+      \resizebox{\linewidth}{!}{%
+      \begin{tabular}{|c|c|c|c|c|c|}\hline
+        L & $L^{*}$ & $L^{**}$ & $R^{**}$ & $R^{*}$ & R \\\hline
+        \multicolumn{2}{|c|}{$S_L$} & \multicolumn{2}{c|}{$S_L^{*}$} & $S_M$ & $S_R$ \\\hline
+      \end{tabular}}
+      \vspace{0.5em}
+      \scriptsize Wave regions across the x-face.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%==========================================================
+\section{Validation and Results}
+%==========================================================
+
+\begin{frame}{Density at t = 0.5, $128^{2}$}
+  \centering
+  \includegraphics[width=0.58\textwidth]{ot128_rho.pdf}
+  \vspace{-0.5em}
+  \begin{itemize}
+    \item Central bow-tie current sheet.
+    \item Four symmetric oblique shocks bounding low-density bays.
+    \item Qualitative match with Athena/Athena++ reference at the same time slice.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Thermal and magnetic pressure, t = 0.5}
+  \begin{columns}[c]
+    \begin{column}{0.5\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{ot128_p.pdf}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{ot128_pmag.pdf}
+    \end{column}
+  \end{columns}
+  \vspace{0.3em}
+  \begin{itemize}\scriptsize
+    \item Thermal pressure tracks density with extra shock heating near the current sheet.
+    \item Magnetic pressure peaks at flux pile-up in the four current-sheet arms.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Formation of the current sheet}
+  \begin{columns}[c]
+    \begin{column}{0.33\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{ot128_t01_rho.pdf}\\ \scriptsize t = 0.1
+    \end{column}
+    \begin{column}{0.33\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{ot128_t03_rho.pdf}\\ \scriptsize t = 0.3
+    \end{column}
+    \begin{column}{0.33\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{ot128_rho.pdf}\\ \scriptsize t = 0.5
+    \end{column}
+  \end{columns}
+  \vspace{0.3em}
+  \begin{itemize}\scriptsize
+    \item t = 0.1: still smooth, the vortices are just forming.
+    \item t = 0.3: diagonal shocks have formed; bow-tie compression starts.
+    \item t = 0.5: fully-developed current sheet and bounding shocks.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Convergence in density}
+  \begin{columns}[c]
+    \begin{column}{0.55\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{ot_convergence.pdf}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \centering\scriptsize
+      \begin{tabular}{rrr}\toprule
+        nx & $L^{1}$ & $L^{2}$ \\\midrule
+        32  & 1.26e-1 & 1.73e-1 \\
+        64  & 7.27e-2 & 1.07e-1 \\
+        128 & 2.87e-2 & 4.26e-2 \\\bottomrule
+      \end{tabular}
+      \vspace{0.5em}
+      \begin{itemize}
+        \item $32 \to 64$: rate $\approx 0.79$.
+        \item $64 \to 128$: rate $\approx 1.33$.
+        \item Between 1st and 2nd order: expected for minmod on a shock-dominated flow.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Divergence control and conservation}
+  \begin{columns}[c]
+    \begin{column}{0.55\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{ot128_divb_history.pdf}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \begin{itemize}
+        \item GLM bounds $\max|\nabla\cdot B|$ once shocks form.
+        \item Cell-centered centered differences are a pessimistic diagnostic; the GLM-natural measure is smaller.
+        \item Mass, momentum, energy conserved to machine precision ($\sim 10^{-16}$ drift per step) -- see \texttt{run.log}.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%==========================================================
+\section{Discussion of Results}
+%==========================================================
+
+\begin{frame}{Accuracy vs limiter choice}
+  \begin{itemize}
+    \item Observed density extrema at $128^{2}$: $\rho_{\min}\approx 0.47$, $\rho_{\max}\approx 2.16$.
+    \item Athena++ with MC limiter at the same resolution: tighter extrema ($\rho_{\min}\sim 0.1$, $\rho_{\max}\sim 3.5$).
+    \item Gap is almost entirely the limiter: minmod is the most diffusive TVD limiter and smears current sheets fastest.
+    \item MC or van Leer would close the gap but at a cost in robustness for low-beta cells.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why between first and second order}
+  \begin{itemize}
+    \item MUSCL is second-order in smooth regions.
+    \item Any TVD limiter drops to first order at local extrema and at shocks.
+    \item Orszag-Tang at t = 0.5 is shock-dominated, so the global rate sits between 1 and 2.
+    \item Observed: $\approx 0.8$ at coarse resolutions (shock-dominated), $\approx 1.3$ at fine (smooth regions start to dominate).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Limitations}
+  \begin{itemize}
+    \item Vectorized NumPy: $128^{2}$ runs in $\sim 7$\,s; $256^{2}$ is the practical ceiling on a laptop.
+    \item No constrained-transport option -- GLM is simpler but less strict about $\nabla\cdot B$.
+    \item 2D Cartesian only; no adaptive refinement.
+    \item Reconstruction is linear (MUSCL) -- no WENO, no higher-order time integration.
+  \end{itemize}
+\end{frame}
+
+%==========================================================
+\section{Conclusions}
+%==========================================================
+
+\begin{frame}{Conclusions}
+  \begin{itemize}
+    \item Built a 2D ideal MHD solver from scratch: Godunov FVM, MUSCL-minmod, HLLD, GLM, SSP-RK2.
+    \item Orszag-Tang at $128^{2}$ reproduces the canonical density/pressure pattern at $t = 0.5$.
+    \item Mass, momentum, energy conserved to machine precision; $\max|\nabla\cdot B|$ bounded by GLM.
+    \item Convergence rate between 1 and 2, consistent with MUSCL-minmod on a shock-dominated flow.
+  \end{itemize}
+  \vspace{0.5em}
+  \textbf{Natural extensions.} Constrained transport; resistive MHD; 3D; AMR; Numba/JAX compilation.
+\end{frame}
+
+\begin{frame}{References}
+  \scriptsize
+  \begin{itemize}
+    \item Miyoshi \& Kusano, \emph{J. Comput. Phys.}\ 208, 315 (2005) -- HLLD.
+    \item Dedner et al., \emph{J. Comput. Phys.}\ 175, 645 (2002) -- GLM cleaning.
+    \item Londrillo \& Del Zanna, \emph{ApJ}\ 530, 508 (2000) -- Orszag-Tang reference.
+    \item Powell et al., \emph{J. Comput. Phys.}\ 154, 284 (1999) -- 8-wave formulation.
+    \item Brio \& Wu, \emph{J. Comput. Phys.}\ 75, 400 (1988) -- 1D shock-tube reference.
+    \item Toro, \emph{Riemann Solvers and Numerical Methods for Fluid Dynamics} (2009) -- MUSCL, HLL family.
+    \item Versteeg \& Malalasekera, \emph{An Intro.\ to CFD: The Finite Volume Method} (2007) -- FVM fundamentals.
+    \item Chen, \emph{Intro.\ to Plasma Physics} (2016); Freidberg, \emph{Ideal MHD} (2014) -- plasma/MHD physics.
+    \item Athena test suite: \url{https://www.astro.princeton.edu/~jstone/Athena/tests/orszag-tang/}.
+  \end{itemize}
+\end{frame}
+
+\end{document}
