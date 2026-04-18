@@ -1,4 +1,4 @@
-"""Structured 2D Cartesian mesh loaded from TOML.
+"""Structured 2D Cartesian mesh loaded from YAML.
 
 The mesh stores cell-centered coordinates and a boundary specification. State
 arrays are allocated with ``NGHOST`` ghost layers on each side of each
@@ -7,12 +7,12 @@ direction; ghost fills are performed by ``vortex.boundary``.
 
 from __future__ import annotations
 
-import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
 import numpy as np
+import yaml
 
 NGHOST: int = 2
 NVAR: int = 9
@@ -87,10 +87,10 @@ class Mesh:
 
 
 def load_config(path: str | Path) -> tuple[Mesh, RunConfig]:
-    """Load a mesh + run configuration from a TOML file."""
+    """Load a mesh + run configuration from a YAML file."""
     path = Path(path)
-    with path.open("rb") as fh:
-        data = tomllib.load(fh)
+    with path.open("r") as fh:
+        data = yaml.safe_load(fh)
 
     mesh_cfg = data["mesh"]
     bc_cfg = data.get("boundary", {})

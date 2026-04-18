@@ -1,0 +1,27 @@
+# Orszag-Tang vortex, production resolution.
+mesh:
+  xlo: 0.0
+  xhi: 1.0
+  ylo: 0.0
+  yhi: 1.0
+  nx: 128
+  ny: 128
+
+boundary:
+  x_low: periodic
+  x_high: periodic
+  y_low: periodic
+  y_high: periodic
+
+run:
+  problem: orszag_tang
+  tfinal: 0.5
+  cfl: 0.3
+  limiter: minmod
+  gamma: 1.6666666666666667
+  snapshot_times: [0.1, 0.2, 0.3, 0.4, 0.5]
+  log_every: 25
+  run_name: orszag_tang_128
+
+glm:
+  cr: 0.18

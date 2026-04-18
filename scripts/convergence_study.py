@@ -24,11 +24,11 @@ from vortex.mesh import load_config
 from vortex.solver import run as run_solver
 
 CASES = [
-    ("meshes/orszag_tang_32.toml", "orszag_tang_32"),
-    ("meshes/orszag_tang_64.toml", "orszag_tang_64"),
-    ("meshes/orszag_tang_128.toml", "orszag_tang_128"),
+    ("meshes/orszag_tang_32.yaml", "orszag_tang_32"),
+    ("meshes/orszag_tang_64.yaml", "orszag_tang_64"),
+    ("meshes/orszag_tang_128.yaml", "orszag_tang_128"),
 ]
-REF_CFG = ("meshes/orszag_tang_256.toml", "orszag_tang_256")
+REF_CFG = ("meshes/orszag_tang_256.yaml", "orszag_tang_256")
 
 DATA_ROOT = Path("data/final")
 OUT_DIR = Path("docs/source/figs")
