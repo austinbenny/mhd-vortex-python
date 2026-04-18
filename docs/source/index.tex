@@ -387,15 +387,16 @@ the global rate sits between~\cite{toro2009}.
 
 \Cref{fig:divb-hist} shows the time history of $\max|\nabla\cdot B|$
 measured by centered differences on cell-centered $B$ on the
-$128^{2}$ run.  The divergence error grows during the transient
-while shocks form (up to $t \approx 0.3$), then levels off as GLM
-transports the errors out of high-gradient regions and damps them
-via $d\psi/dt = -(c_h/c_r)\psi$.  Absolute values above unity at
-late times reflect the fact that centered differences on
-cell-centered $B$ are not the natural divergence measure for
-GLM-FVM: what GLM actually damps is a particular discrete operator
-built into the psi evolution, which is consistently smaller.  The
-qualitative solution is unaffected~\cite{dedner2002}.
+$128^{2}$ run.  The divergence error grows steeply during the
+transient while shocks form (up to $t \approx 0.15$), then plateaus
+in the range $10^{0}$--$10^{1}$ through the bulk of the simulation,
+with a late-time uptick near $t = 0.5$ as the central current sheet
+tightens.  Absolute values above unity reflect the fact that
+centered differences on cell-centered $B$ are not the natural
+divergence measure for GLM-FVM: what GLM actually damps is a
+particular discrete operator built into the psi evolution, which is
+consistently smaller.  The qualitative solution is
+unaffected~\cite{dedner2002}.
 
 \begin{figure}[H]
 \centering
@@ -445,12 +446,14 @@ is closer to one than two.
 
 \subsection{Divergence control and scheme robustness}
 
-$\max|\nabla\cdot B|$ grows during shock formation and then
-stabilizes, which is the correct behavior for hyperbolic GLM
-cleaning~\cite{dedner2002}.  The absolute values of the centered-
-difference diagnostic reach the order of $10^{0}$ at the most violent
-time.  These are of the size expected given the resolution and the
-strength of the current sheet; the solver remains stable, mass and
+$\max|\nabla\cdot B|$ grows during shock formation, plateaus in the
+range $10^{0}$--$10^{1}$ through the bulk of the run, and shows a
+late-time uptick near $t = 0.5$ as the current sheet tightens.  This
+is the expected behavior for hyperbolic GLM
+cleaning~\cite{dedner2002}: the scheme keeps the divergence error
+bounded rather than decaying it to zero, and the absolute scale of
+the centered-difference diagnostic is set by the resolution and the
+strength of the current sheet.  The solver remains stable, mass and
 energy are conserved to machine precision, and there is no visible
 corruption of the density or pressure patterns.
 
