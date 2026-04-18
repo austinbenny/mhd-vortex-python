@@ -31,7 +31,7 @@ CASES = [
 REF_CFG = ("meshes/orszag_tang_256.yaml", "orszag_tang_256")
 
 DATA_ROOT = Path("data/final")
-OUT_DIR = Path("docs/source/figs")
+OUT_DIR = DATA_ROOT / "convergence" / "figs"
 CSV_OUT = DATA_ROOT / "convergence" / "errors.csv"
 
 
@@ -87,7 +87,7 @@ def main(argv: list[str] | None = None) -> int:
     fig, ax = plt.subplots(figsize=(5.5, 4.0))
     ax.loglog(nxs, l1s, marker="o", label="L1")
     ax.loglog(nxs, l2s, marker="s", label="L2")
-    # Reference slopes.
+    # Reference slopes anchored at the coarsest L1 point.
     ref_pt = (nxs[0], l1s[0])
     ax.loglog(nxs, ref_pt[1] * (ref_pt[0] / nxs), "k--", lw=0.8, label="1st order")
     ax.loglog(nxs, ref_pt[1] * (ref_pt[0] / nxs) ** 2, "k:", lw=0.8, label="2nd order")
@@ -96,9 +96,10 @@ def main(argv: list[str] | None = None) -> int:
     ax.grid(True, which="both", alpha=0.3)
     ax.legend()
     fig.tight_layout()
-    fig.savefig(OUT_DIR / "ot_convergence.pdf", bbox_inches="tight")
+    out_path = OUT_DIR / "convergence.pdf"
+    fig.savefig(out_path, bbox_inches="tight")
     plt.close(fig)
-    print(f"wrote {CSV_OUT} and {OUT_DIR / 'ot_convergence.pdf'}")
+    print(f"wrote {CSV_OUT} and {out_path}")
     return 0
 
 

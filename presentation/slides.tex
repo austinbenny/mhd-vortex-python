@@ -8,7 +8,11 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 
-\graphicspath{{../docs/source/figs/}}
+\graphicspath{
+  {../data/final/orszag_tang_128/figs/}
+  {../data/final/convergence/figs/}
+  {../docs/source/figs/}
+}
 
 \title[2D Ideal MHD]{2D Ideal MHD Solver on the Orszag-Tang Vortex}
 \subtitle{ME-7751 Final Project}
@@ -56,7 +60,7 @@
       \end{itemize}
     \end{column}
     \begin{column}{0.45\textwidth}
-      \includegraphics[width=\linewidth]{ot128_rho.pdf}
+      \includegraphics[width=\linewidth]{rho_final.pdf}
     \end{column}
   \end{columns}
 \end{frame}
@@ -135,7 +139,7 @@
 
 \begin{frame}{Density at t = 0.5, $128^{2}$}
   \centering
-  \includegraphics[width=0.58\textwidth]{ot128_rho.pdf}
+  \includegraphics[width=0.58\textwidth]{rho_final.pdf}
   \vspace{-0.5em}
   \begin{itemize}
     \item Central bow-tie current sheet.
@@ -148,11 +152,11 @@
   \begin{columns}[c]
     \begin{column}{0.5\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{ot128_p.pdf}
+      \includegraphics[width=\linewidth]{p_final.pdf}
     \end{column}
     \begin{column}{0.5\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{ot128_pmag.pdf}
+      \includegraphics[width=\linewidth]{pmag_final.pdf}
     \end{column}
   \end{columns}
   \vspace{0.3em}
@@ -166,15 +170,15 @@
   \begin{columns}[c]
     \begin{column}{0.33\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{ot128_t01_rho.pdf}\\ \scriptsize t = 0.1
+      \includegraphics[width=\linewidth]{rho_t0p100.pdf}\\ \scriptsize t = 0.1
     \end{column}
     \begin{column}{0.33\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{ot128_t03_rho.pdf}\\ \scriptsize t = 0.3
+      \includegraphics[width=\linewidth]{rho_t0p300.pdf}\\ \scriptsize t = 0.3
     \end{column}
     \begin{column}{0.33\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{ot128_rho.pdf}\\ \scriptsize t = 0.5
+      \includegraphics[width=\linewidth]{rho_final.pdf}\\ \scriptsize t = 0.5
     \end{column}
   \end{columns}
   \vspace{0.3em}
@@ -189,7 +193,7 @@
   \begin{columns}[c]
     \begin{column}{0.55\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{ot_convergence.pdf}
+      \includegraphics[width=\linewidth]{convergence.pdf}
     \end{column}
     \begin{column}{0.45\textwidth}
       \centering\scriptsize
@@ -213,7 +217,7 @@
   \begin{columns}[c]
     \begin{column}{0.55\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{ot128_divb_history.pdf}
+      \includegraphics[width=\linewidth]{divb_history.pdf}
     \end{column}
     \begin{column}{0.45\textwidth}
       \begin{itemize}
