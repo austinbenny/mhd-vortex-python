@@ -1,4 +1,4 @@
-"""CLI entry point: run an Orszag-Tang simulation from a TOML config.
+"""CLI entry point: run an Orszag-Tang simulation from a YAML config.
 
 Usage
 -----
@@ -7,29 +7,27 @@ Usage
 
 from __future__ import annotations
 
-import argparse
-import sys
+import click
 
 from vortex.mesh import load_config
 from vortex.solver import run
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("config", help="Path to a mesh/run TOML file")
-    parser.add_argument(
-        "--data-root",
-        default="data/final",
-        help="Directory to write run artifacts under (default: data/final)",
-    )
-    args = parser.parse_args(argv)
-
-    mesh, cfg = load_config(args.config)
-    summary = run(mesh, cfg, data_root=args.data_root)
-    print(f"run directory: {summary['run_dir']}")
-    print(f"steps: {summary['steps']}  elapsed: {summary['elapsed_s']:.2f}s")
-    return 0
+@click.command(help=__doc__)
+@click.argument("config", type=click.Path(exists=True, dir_okay=False))
+@click.option(
+    "--data-root",
+    type=click.Path(file_okay=False),
+    default="data/final",
+    show_default=True,
+    help="Directory to write run artifacts under.",
+)
+def main(config: str, data_root: str) -> None:
+    mesh, cfg = load_config(config)
+    summary = run(mesh, cfg, data_root=data_root)
+    click.echo(f"run directory: {summary['run_dir']}")
+    click.echo(f"steps: {summary['steps']}  elapsed: {summary['elapsed_s']:.2f}s")
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

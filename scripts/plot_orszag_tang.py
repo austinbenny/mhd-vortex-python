@@ -11,11 +11,10 @@ Usage
 
 from __future__ import annotations
 
-import argparse
 import re
-import sys
 from pathlib import Path
 
+import click
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -28,7 +27,7 @@ def _primitives(U: np.ndarray, gamma: float = GAMMA):
     u = U[IMX] / rho
     v = U[IMY] / rho
     bx, by, bz = U[IBX], U[IBY], U[IBZ]
-    # Kinetic and magnetic energy densities to back out thermal pressure.
+    # Kinetic + magnetic energy densities to back out thermal pressure.
     kin = 0.5 * rho * (u * u + v * v + (U[3] / rho) ** 2)
     mag = 0.5 * (bx * bx + by * by + bz * bz)
     p = np.maximum((gamma - 1.0) * (U[IEN] - kin - mag), 1e-12)
@@ -113,8 +112,8 @@ def plot_snapshot(snap_path: Path, out_dir: Path) -> None:
 
 
 def _parse_log(log_path: Path):
-    # The log writer pads ``step=%6d`` so ``=`` is separated by whitespace; a
-    # regex is more robust than splitting on tokens.
+    # The log writer pads ``step=%6d`` so ``=`` is separated by whitespace;
+    # a regex is more robust than token splitting.
     pat = re.compile(r"step=\s*(\d+)\s+t=([0-9.e+-]+).*?max\|divB\|=([0-9.eE+-]+)")
     steps, times, divb = [], [], []
     for line in log_path.read_text().splitlines():
@@ -141,35 +140,33 @@ def plot_divb_history(run_dir: Path, out_dir: Path) -> None:
     plt.close(fig)
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("run_dir", help="Directory containing snap_*.npz and run.log")
-    parser.add_argument(
-        "--out",
-        default=None,
-        help="Output directory (default: <run_dir>/figs)",
-    )
-    parser.add_argument(
-        "--snap",
-        default=None,
-        help="Specific snapshot to plot. If omitted, all snap_*.npz in run_dir are plotted.",
-    )
-    args = parser.parse_args(argv)
-
-    run_dir = Path(args.run_dir)
-    out_dir = Path(args.out) if args.out else run_dir / "figs"
+@click.command(help=__doc__)
+@click.argument("run_dir", type=click.Path(exists=True, file_okay=False))
+@click.option(
+    "--out",
+    type=click.Path(file_okay=False),
+    default=None,
+    help="Output directory (default: <run_dir>/figs).",
+)
+@click.option(
+    "--snap",
+    default=None,
+    help="Specific snapshot filename. If omitted, all snap_*.npz are plotted.",
+)
+def main(run_dir: str, out: str | None, snap: str | None) -> None:
+    run_path = Path(run_dir)
+    out_dir = Path(out) if out else run_path / "figs"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    if args.snap:
-        plot_snapshot(run_dir / args.snap, out_dir)
+    if snap:
+        plot_snapshot(run_path / snap, out_dir)
     else:
-        for snap in sorted(run_dir.glob("snap_*.npz")):
-            plot_snapshot(snap, out_dir)
+        for snap_path in sorted(run_path.glob("snap_*.npz")):
+            plot_snapshot(snap_path, out_dir)
 
-    plot_divb_history(run_dir, out_dir)
-    print(f"wrote figures to {out_dir}")
-    return 0
+    plot_divb_history(run_path, out_dir)
+    click.echo(f"wrote figures to {out_dir}")
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

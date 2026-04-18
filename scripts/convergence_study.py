@@ -6,15 +6,15 @@ Usage
 
 Writes:
     data/final/convergence/errors.csv
-    docs/source/figs/ot_convergence.pdf
+    data/final/convergence/figs/convergence.pdf
 """
 
 from __future__ import annotations
 
 import csv
-import sys
 from pathlib import Path
 
+import click
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -51,8 +51,8 @@ def _area_average(field: np.ndarray, factor: int) -> np.ndarray:
     return field.reshape(nx // factor, factor, ny // factor, factor).mean(axis=(1, 3))
 
 
-def main(argv: list[str] | None = None) -> int:
-    del argv
+@click.command(help=__doc__)
+def main() -> None:
     ref_dir = _ensure_run(*REF_CFG)
     ref = load_snapshot(ref_dir / "snap_final.npz")
     rho_ref = ref["U"][IRHO]
@@ -71,7 +71,7 @@ def main(argv: list[str] | None = None) -> int:
         l1 = float(np.sum(np.abs(err)) * dA)
         l2 = float(np.sqrt(np.sum(err * err) * dA))
         rows.append((nx, l1, l2))
-        print(f"nx={nx:4d}  L1={l1:.4e}  L2={l2:.4e}")
+        click.echo(f"nx={nx:4d}  L1={l1:.4e}  L2={l2:.4e}")
 
     CSV_OUT.parent.mkdir(parents=True, exist_ok=True)
     with CSV_OUT.open("w", newline="") as fh:
@@ -99,9 +99,8 @@ def main(argv: list[str] | None = None) -> int:
     out_path = OUT_DIR / "convergence.pdf"
     fig.savefig(out_path, bbox_inches="tight")
     plt.close(fig)
-    print(f"wrote {CSV_OUT} and {out_path}")
-    return 0
+    click.echo(f"wrote {CSV_OUT} and {out_path}")
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
