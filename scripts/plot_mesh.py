@@ -3,7 +3,7 @@ and magnetic-field vectors at a coarse sampling.
 
 Usage
 -----
-    uv run python -m scripts.plot_mesh meshes/orszag_tang_128.yaml \
+    uv run python -m scripts.plot_mesh data/raw/orszag_tang_128.yaml \
         --out data/final/mesh_preview/figs/mesh_preview.pdf
 """
 

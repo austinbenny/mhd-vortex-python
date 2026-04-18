@@ -3,7 +3,7 @@ SHELL := /bin/bash
 PY := uv run python
 PYTEST := uv run pytest
 
-MESH ?= meshes/orszag_tang_128.yaml
+MESH ?= data/raw/orszag_tang_128.yaml
 RUN_NAME ?= orszag_tang_128
 RUN_DIR := data/final/$(RUN_NAME)
 

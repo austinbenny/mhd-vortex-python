@@ -2,7 +2,7 @@
 
 Usage
 -----
-    uv run python -m scripts.run_orszag_tang meshes/orszag_tang_128.yaml
+    uv run python -m scripts.run_orszag_tang data/raw/orszag_tang_128.yaml
 """
 
 from __future__ import annotations
