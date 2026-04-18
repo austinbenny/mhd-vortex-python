@@ -1,0 +1,84 @@
+\section{Math \& Physics Notation}
+The package includes \texttt{physics} and \texttt{siunitx} for standard notation.
+
+\subsection{Governing Equations}
+The incompressible Navier-Stokes momentum equation can be written compactly using the \texttt{physics} package commands like \texttt{\textbackslash pdv} and \texttt{\textbackslash vb}:
+\begin{equation} \label{eq:ns}
+    \pdv{\vb{u}}{t} + (\vb{u} \cdot \grad) \vb{u} = -\frac{1}{\rho} \grad p + \nu \grad^2 \vb{u} + \vb{g}
+\end{equation}
+
+\subsection{Units}
+Use \texttt{siunitx} for consistent formatting.
+\begin{itemize}
+    \item \textbf{Inline Quantity:} The inlet velocity is \qty{15.3}{\meter\per\second}.
+    \item \textbf{Scientific Notation:} The viscosity is \qty{1.00e-6}{\meter\squared\per\second}.
+    \item \textbf{Just Units:} The units of pressure are \unit{\pascal}.
+\end{itemize}
+
+\section{Tables (Tabularray)}
+We use \texttt{tabularray} for professional tables. It separates content from styling.
+
+\begin{table}[H]
+    \centering
+    \caption{Simulation Parameters}
+    \label{tab:params}
+    \begin{tblr}{
+        colspec = {l c c},
+        hlines,
+        vlines,
+        row{1} = {font=\bfseries, bg=gray9}
+    }
+        Parameter & Symbol & Value \\
+        Density   & $\rho$ & \qty{998}{\kilo\gram\per\meter\cubed} \\
+        Viscosity & $\mu$  & \qty{1.002e-3}{\pascal\second} \\
+        Diameter  & $D$    & \qty{0.05}{\meter} \\
+    \end{tblr}
+\end{table}
+
+\section{Code Highlighting (Minted)}
+You can include Python code directly.
+
+\subsection{Embedded Code}
+Using the \texttt{minted} environment:
+
+\begin{minted}{python}
+import numpy as np
+
+def calculate_reynolds(rho, u, d, mu):
+    """
+    Calculate Re = rho * u * d / mu
+    """
+    re = (rho * u * d) / mu
+    return re
+
+re_val = calculate_reynolds(998, 15.3, 0.05, 1.002e-3)
+print(f"Reynolds Number: {re_val:.2f}")
+\end{minted}
+
+\subsection{Importing Files}
+If you have an external script (e.g., \texttt{solver.py}), use this command:
+\begin{verbatim}
+    \inputminted{python}{solver.py}
+\end{verbatim}
+
+For scripts that span multiple pages, use the \texttt{longlisting} environment to enable page breaks while maintaining a caption:
+\begin{verbatim}
+    \begin{longlisting}
+        \caption{Solver Implementation}
+        \label{lst:solver}
+        \inputminted{python}{solver.py}
+    \end{longlisting}
+\end{verbatim}
+
+\section{Figures}
+Standard \texttt{graphicx} support is included. References are handled by \texttt{cleveref} (e.g., see \Cref{fig:example} or \Cref{eq:ns}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{example-image-a}
+    \caption{Velocity contours at $t = \qty{10}{\second}$.}
+    \label{fig:example}
+\end{figure}
+
+\section{References}
+Citations use \texttt{biblatex}. As seen in \cite{versteeg2007}, the Finite Volume Method is standard for CFD.

@@ -1,0 +1,160 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{homework}[2026/01/29 Homework Package]
+
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[T1]{fontenc}
+\RequirePackage{microtype}
+\renewcommand{\familydefault}{\sfdefault}
+
+\RequirePackage{newunicodechar}
+\RequirePackage{pmboxdraw}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{├}{\textSFviii}
+\newunicodechar{─}{\textSFx}
+\newunicodechar{└}{\textSFii}
+\newunicodechar{│}{\textSFxi}
+
+\RequirePackage[letterpaper, margin=1in]{geometry}
+\RequirePackage{fancyhdr}
+\RequirePackage{lastpage}
+\RequirePackage{adjustbox}
+
+\RequirePackage{tikz}
+\usetikzlibrary{
+    positioning,
+    calc,
+    intersections,
+    through,
+    shapes,
+    shapes.geometric,
+    shapes.multipart,
+    shapes.arrows,
+    arrows.meta,
+    bending,
+    decorations.pathmorphing,
+    decorations.pathreplacing,
+    decorations.markings,
+    backgrounds,
+    fit,
+    scopes,
+    chains,
+    matrix,
+    patterns,
+    shadows,
+}
+
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{amsfonts}
+\RequirePackage{mathtools}
+\RequirePackage{physics}
+\RequirePackage{bm}
+
+\RequirePackage{graphicx}
+\RequirePackage{float}
+\RequirePackage{caption}
+\captionsetup[table]{skip=10pt}
+
+\RequirePackage[x11names]{xcolor}
+\RequirePackage{tabularray}
+\UseTblrLibrary{siunitx}
+
+\RequirePackage[outputdir=docs/build, newfloat]{minted}
+
+\usemintedstyle{default}
+\setminted{
+    frame=lines,
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    linenos,
+    breaklines,
+    breakanywhere
+}
+
+\newenvironment{longlisting}{\captionsetup{type=listing,position=top}}{}
+
+\RequirePackage[colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue]{hyperref}
+\RequirePackage[capitalise, nameinlink]{cleveref}
+\RequirePackage[backend=biber, style=numeric, sorting=none]{biblatex}
+
+\addbibresource{refs.bib}
+
+\sisetup{
+    inter-unit-product = \ensuremath{\cdot},
+    per-mode = symbol,
+    separate-uncertainty = true,
+    multi-part-units = single
+}
+
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+                                    {3.25ex \@plus1ex \@minus.2ex}%
+                                    {1.5ex \@plus .2ex}%
+                                    {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{5}{\z@}%
+                                    {3.25ex \@plus1ex \@minus.2ex}%
+                                    {1.5ex \@plus .2ex}%
+                                    {\normalfont\normalsize\bfseries}}
+\makeatother
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+
+\newcommand{\hmwkTitle}{Homework Title}
+\newcommand{\hmwkDate}{Date}
+\newcommand{\hmwkClass}{Class Name}
+\newcommand{\hmwkAuthorName}{Author Name}
+
+\newcommand{\titleInfo}[4]{
+    \renewcommand{\hmwkTitle}{#1}
+    \renewcommand{\hmwkDate}{#2}
+    \renewcommand{\hmwkClass}{#3}
+    \renewcommand{\hmwkAuthorName}{#4}
+}
+
+\fancyhf{}
+\lhead{\hmwkClass\ : \hmwkTitle}
+\rhead{\hmwkAuthorName}
+\rfoot{Page\ \thepage\ of\ \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\newcommand{\makehomeworktitle}{
+    \begin{titlepage}
+        \centering
+        \vspace*{2in}
+
+        \hrule height 2pt
+        \vspace{1.5em}
+
+        {\Huge \textbf{\hmwkClass:\ \hmwkTitle} \par}
+
+        \vspace{1.5em}
+
+        {\Large \textbf{\hmwkAuthorName} \par}
+
+        \vspace{2em}
+
+        {\large \hmwkDate \par}
+
+        \vspace{1.5em}
+        \hrule height 2pt
+
+        \vfill
+    \end{titlepage}
+
+    \pagestyle{fancy}
+}
+
+\AtBeginDocument{\RenewCommandCopy\qty\SI}
+\AtBeginEnvironment{longlisting}{\setlength{\belowcaptionskip}{10pt}}
+
+\AtEndDocument{
+    \printbibliography[heading=bibintoc, title={References}]
+}
+
+\endinput

@@ -1,0 +1,36 @@
+\section{Layout and Usage}
+
+\subsection{Layout}
+
+The scripts are in the \texttt{hw} directory, and the results are in the \texttt{data/final} directory. See \Cref{lst:tree}.
+
+\begin{longlisting}
+    \caption{Tree}
+    \label{lst:tree}
+    \inputminted{text}{data/tree.txt}
+\end{longlisting}
+
+\subsection{Installation and Usage (Linux / macOS)}
+
+To reproduce the results, it is recommended to extract the package into a dedicated directory to ensure all dependencies and build scripts are correctly located.
+
+\begin{minted}{bash}
+mkdir hw
+unzip package.zip -d hw
+
+cd hw
+
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+uv sync
+
+make
+\end{minted}
+
+\subsection{Usage}
+
+A \texttt{Makefile} is provided to automate the execution of all scripts and the compilation of this document.
+
+\begin{minted}{bash}
+make
+\end{minted}
