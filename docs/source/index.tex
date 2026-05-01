@@ -11,69 +11,23 @@
 
 \section{Introduction and Problem Motivation}
 
-Magnetohydrodynamics (MHD) describes an electrically conducting fluid
-in which the flow and the magnetic field evolve as a single coupled
-system.  The single-fluid ideal MHD equations apply when electrons
-and ions move together and resistive diffusion is
-negligible~\cite{chen2016,freidberg2014}.  That regime covers the
-solar wind, tokamak confinement, astrophysical jets, and the Earth's
-magnetosphere.
+Magnetohydrodynamics (MHD) describes an electrically conducting fluid in which the flow and the magnetic field evolve as a single coupled system.  The single-fluid ideal MHD equations apply when electrons and ions move together and resistive diffusion is negligible~\cite{chen2016,freidberg2014}.  That regime covers the solar wind, tokamak confinement, astrophysical jets, and the Earth's magnetosphere.
 
-A reader who has seen the Euler equations will recognize most of MHD:
-mass, momentum, and energy conservation on a moving compressible
-fluid.  Three things are new, all stemming from the magnetic field $B$.
+A reader who has seen the Euler equations will recognize most of MHD: mass, momentum, and energy conservation on a moving compressible fluid.  Three things are new, all stemming from the magnetic field $B$.
 
-\emph{The Lorentz force.}  A conducting fluid in motion behaves like
-a distributed electric current.  Whenever a current sits in a
-magnetic field, every cubic meter of fluid feels a body force
-$\mathbf{J}\times\mathbf{B}$---the Lorentz force.  In the conservative
-form used below, this body force is repackaged as part of the
-momentum flux: a \emph{magnetic pressure} $\tfrac{1}{2}|B|^{2}$ that
-adds to the gas pressure and a \emph{magnetic tension} along field
-lines that shows up as the off-diagonal $B_iB_j$ terms.  The same
-flow that feels this force also distorts the field: in the ideal
-limit, magnetic field lines are ``frozen'' into the fluid and move
-with it.  Fluid and field are tied together at every point.
+\emph{The Lorentz force.}  A conducting fluid in motion behaves like a distributed electric current.  Whenever a current sits in a magnetic field, every cubic meter of fluid feels a body force $\mathbf{J}\times\mathbf{B}$---the Lorentz force.  In the conservative form used below, this body force is repackaged as part of the momentum flux: a \emph{magnetic pressure} $\tfrac{1}{2}|B|^{2}$ that adds to the gas pressure and a \emph{magnetic tension} along field lines that shows up as the off-diagonal $B_iB_j$ terms.  The same flow that feels this force also distorts the field: in the ideal limit, magnetic field lines are ``frozen'' into the fluid and move with it.  Fluid and field are tied together at every point.
 
-\emph{Three new wave families.}  Euler has one acoustic speed; MHD
-has three.  \emph{Fast magnetosonic} waves are sound waves in which
-gas pressure and magnetic pressure compress in phase.  \emph{Slow
-magnetosonic} waves are sound waves in which they fight each other
-and the wave runs slower.  \emph{Alfven} waves are transverse
-oscillations of the field, like waves on a stretched string with
-magnetic tension as the restoring force.  Each family travels in two
-directions, plus the entropy/contact wave familiar from Euler, giving
-seven wave families in 1D MHD.
+\emph{Three new wave families.}  Euler has one acoustic speed; MHD has three.  \emph{Fast magnetosonic} waves are sound waves in which gas pressure and magnetic pressure compress in phase.  \emph{Slow magnetosonic} waves are sound waves in which they fight each other and the wave runs slower.  \emph{Alfven} waves are transverse oscillations of the field, like waves on a stretched string with magnetic tension as the restoring force.  Each family travels in two directions, plus the entropy/contact wave familiar from Euler, giving seven wave families in 1D MHD.
 
-\emph{The divergence constraint.}  Maxwell's equations forbid
-magnetic monopoles, so $\nabla\cdot B = 0$ everywhere.  Field lines
-have no sources or sinks; whatever flux enters a closed surface must
-leave it.  An exact solution preserves this for all time, but a
-discrete solver does not, and an uncontrolled cell-centered
-divergence shows up as a spurious force parallel to $B$.
+\emph{The divergence constraint.}  Maxwell's equations forbid magnetic monopoles, so $\nabla\cdot B = 0$ everywhere.  Field lines have no sources or sinks; whatever flux enters a closed surface must leave it.  An exact solution preserves this for all time, but a discrete solver does not, and an uncontrolled cell-centered divergence shows up as a spurious force parallel to $B$.
 
-A practical finite-volume solver therefore has to resolve the
-seven-wave MHD Riemann fan, control the divergence constraint
-numerically, and stay robust at strong shocks and in \emph{low-beta}
-regions.  Plasma beta is the ratio
-$\beta = p / (\tfrac{1}{2}|B|^{2})$ of gas pressure to magnetic
-pressure; low-beta means the magnetic field carries most of the
-energy, which makes wave speeds high and stable updates harder.
+A practical finite-volume solver therefore has to resolve the seven-wave MHD Riemann fan, control the divergence constraint numerically, and stay robust at strong shocks and in \emph{low-beta} regions.  Plasma beta is the ratio $\beta = p / (\tfrac{1}{2}|B|^{2})$ of gas pressure to magnetic pressure; low-beta means the magnetic field carries most of the energy, which makes wave speeds high and stable updates harder.
 
-The goal of this project is to build such a solver from scratch in
-Python and to validate it on the 2D Orszag-Tang vortex.  The
-Orszag-Tang problem is the canonical 2D MHD benchmark: all-sinusoidal
-initial data on a periodic square, no geometry, no density jump, and
-no outflow boundaries.  If something in the code is wrong, it is the
-solver and not the setup.  The reference solution used here is the
-published density-and-pressure pattern of Londrillo and Del
-Zanna~\cite{londrillo2000} and the publicly hosted Athena test-suite
-snapshot at t = 0.5~\cite{athena_orszag_tang}.
+The goal of this project is to build such a solver from scratch in Python and to validate it on the 2D Orszag-Tang vortex.  The Orszag-Tang problem is the canonical 2D MHD benchmark: all-sinusoidal initial data on a periodic square, no geometry, no density jump, and no outflow boundaries.  If something in the code is wrong, it is the solver and not the setup.  The reference solution used here is the published density-and-pressure pattern of Londrillo and Del Zanna~\cite{londrillo2000} and the publicly hosted Athena test-suite snapshot at t = 0.5~\cite{athena_orszag_tang}.
 
 \section{Mathematical Model}
 
-In two spatial dimensions the ideal MHD system takes the conservative
-form
+In two spatial dimensions the ideal MHD system takes the conservative form
 \begin{equation}
 \frac{\partial U}{\partial t}
   + \frac{\partial F(U)}{\partial x}
@@ -81,17 +35,13 @@ form
 \qquad
 U = \begin{pmatrix} \rho \\ \rho u \\ \rho v \\ \rho w \\ B_x \\ B_y \\ B_z \\ E \end{pmatrix},
 \end{equation}
-with all three velocity components and all three magnetic-field
-components carried even in two spatial dimensions so that Alfven waves
-propagating out of the plane are represented
-correctly~\cite{powell1999}.  The total energy density is
+with all three velocity components and all three magnetic-field components carried even in two spatial dimensions so that Alfven waves propagating out of the plane are represented correctly~\cite{powell1999}.  The total energy density is
 \begin{equation}
 E \;=\; \frac{p}{\gamma - 1}
        \;+\; \tfrac{1}{2}\,\rho\,(u^{2}+v^{2}+w^{2})
        \;+\; \tfrac{1}{2}\,(B_x^{2}+B_y^{2}+B_z^{2}),
 \end{equation}
-and the fluxes combine ordinary hydrodynamic transport, Maxwell
-stresses, and the total pressure $p_T = p + \tfrac{1}{2}|B|^{2}$:
+and the fluxes combine ordinary hydrodynamic transport, Maxwell stresses, and the total pressure $p_T = p + \tfrac{1}{2}|B|^{2}$:
 \begin{equation}
 F(U) = \begin{pmatrix}
 \rho u \\
@@ -104,8 +54,7 @@ u B_z - w B_x \\
 (E + p_T)u - B_x (u B_x + v B_y + w B_z)
 \end{pmatrix}.
 \end{equation}
-The y-direction flux is obtained by swapping the roles of $u$ and $v$,
-and $B_x$ and $B_y$:
+The y-direction flux is obtained by swapping the roles of $u$ and $v$, and $B_x$ and $B_y$:
 \begin{equation}
 G(U) = \begin{pmatrix}
 \rho v \\
@@ -118,88 +67,33 @@ v B_z - w B_y \\
 (E + p_T)v - B_y (u B_x + v B_y + w B_z)
 \end{pmatrix}.
 \end{equation}
-Closure is by the ideal-gas relation
-$p = (\gamma-1)(E - \tfrac{1}{2}\rho |v|^{2} - \tfrac{1}{2}|B|^{2})$
-with $\gamma = 5/3$.
+Closure is by the ideal-gas relation $p = (\gamma-1)(E - \tfrac{1}{2}\rho |v|^{2} - \tfrac{1}{2}|B|^{2})$ with $\gamma = 5/3$.
 
-For a CFD reader, it helps to map each row of $F(U)$ back to a
-familiar concept:
+For a CFD reader, it helps to map each row of $F(U)$ back to a familiar concept:
 \begin{itemize}
-  \item Row 1 ($\rho u$) is the standard mass flux---unchanged from
-    Euler.
-  \item Rows 2--4 are the momentum flux.  The diagonal entry
-    ($\rho u^{2} + p_T - B_x^{2}$) carries gas pressure and the
-    \emph{magnetic pressure} $\tfrac{1}{2}|B|^{2}$ inside $p_T$, plus
-    a tension term $-B_x^{2}$ that pulls fluid along field lines.
-    The off-diagonal entries ($-B_xB_y$, $-B_xB_z$) are the
-    \emph{Maxwell stresses}: the field shears the fluid the same way
-    a tense rubber band would.
-  \item Row 5 (the $B_x$-flux row, written here as $0$) reflects the
-    fact that ideal MHD has no x-direction transport of $B_x$ in 1D;
-    the GLM scheme of \S2.1 fills this entry with a small extra
-    coupling to the cleaning scalar $\psi$.
-  \item Rows 6--7 are the induction equation in flux form.  The
-    expression $uB_y - vB_x$ is the $z$-component of the
-    \emph{electric field} $-\mathbf{v}\times\mathbf{B}$ that the
-    moving fluid generates---this is the term that drags field lines
-    along with the flow (``frozen-in flux'').
-  \item Row 8 is the energy flux.  The hydrodynamic part is the
-    Euler total enthalpy $(E + p_T)u$; the new piece
-    $-B_x(\mathbf{v}\cdot\mathbf{B})$ is the Poynting flux, which
-    transports magnetic energy with the fluid.
+  \item Row 1 ($\rho u$) is the standard mass flux---unchanged from Euler.
+  \item Rows 2--4 are the momentum flux.  The diagonal entry ($\rho u^{2} + p_T - B_x^{2}$) carries gas pressure and the \emph{magnetic pressure} $\tfrac{1}{2}|B|^{2}$ inside $p_T$, plus a tension term $-B_x^{2}$ that pulls fluid along field lines. The off-diagonal entries ($-B_xB_y$, $-B_xB_z$) are the \emph{Maxwell stresses}: the field shears the fluid the same way a tense rubber band would.
+  \item Row 5 (the $B_x$-flux row, written here as $0$) reflects the fact that ideal MHD has no x-direction transport of $B_x$ in 1D; the GLM scheme of \S2.1 fills this entry with a small extra coupling to the cleaning scalar $\psi$.
+  \item Rows 6--7 are the induction equation in flux form.  The expression $uB_y - vB_x$ is the $z$-component of the \emph{electric field} $-\mathbf{v}\times\mathbf{B}$ that the moving fluid generates---this is the term that drags field lines along with the flow (``frozen-in flux'').
+  \item Row 8 is the energy flux.  The hydrodynamic part is the Euler total enthalpy $(E + p_T)u$; the new piece $-B_x(\mathbf{v}\cdot\mathbf{B})$ is the Poynting flux, which transports magnetic energy with the fluid.
 \end{itemize}
-The total energy density~(2) carries one extra term beyond Euler:
-the \emph{magnetic energy} $\tfrac{1}{2}|B|^{2}$.  Whenever $B$ is
-strong this term dominates the budget.
+The total energy density~(2) carries one extra term beyond Euler: the \emph{magnetic energy} $\tfrac{1}{2}|B|^{2}$.  Whenever $B$ is strong this term dominates the budget.
 
-The system is hyperbolic but not strictly so: the seven wave families
-of the 1D Riemann problem (two fast magnetosonic, two Alfven, two
-slow magnetosonic, and one entropy/contact) can degenerate when the
-normal magnetic field aligns with the propagation direction---two
-wave speeds cross, and an ordinary eigenvector basis breaks down.
-Any Riemann solver has to handle this gracefully.
+The system is hyperbolic but not strictly so: the seven wave families of the 1D Riemann problem (two fast magnetosonic, two Alfven, two slow magnetosonic, and one entropy/contact) can degenerate when the normal magnetic field aligns with the propagation direction---two wave speeds cross, and an ordinary eigenvector basis breaks down. Any Riemann solver has to handle this gracefully.
 
 \subsection{The divergence constraint}
 
-$\nabla\cdot B = 0$ is Gauss's law for magnetism: there are no
-magnetic monopoles, so field lines cannot start or end inside the
-domain.  The induction equation in MHD preserves this constraint
-analytically---the exact time evolution of $B$ is divergence-free if
-the initial data are.
+$\nabla\cdot B = 0$ is Gauss's law for magnetism: there are no magnetic monopoles, so field lines cannot start or end inside the domain.  The induction equation in MHD preserves this constraint analytically---the exact time evolution of $B$ is divergence-free if the initial data are.
 
-Discrete schemes do not inherit the property
-automatically~\cite{balsara1999,powell1999}.  The induction equation
-is updated from interface electric fields that, under piecewise
-reconstruction, produce a small but nonzero divergence at every cell
-center.  The physical consequence is direct: the Lorentz force has
-the form $(\nabla\times B)\times B$, which can be rewritten as
-$(B\cdot\nabla)B - \tfrac{1}{2}\nabla|B|^{2} - (\nabla\cdot B)\,B$.
-The last term is identically zero for an exact solution but becomes
-a spurious force \emph{parallel to $B$} as soon as the discrete
-divergence is nonzero, breaking momentum conservation and eventually
-blowing up the run.
+Discrete schemes do not inherit the property automatically~\cite{balsara1999,powell1999}.  The induction equation is updated from interface electric fields that, under piecewise reconstruction, produce a small but nonzero divergence at every cell center.  The physical consequence is direct: the Lorentz force has the form $(\nabla\times B)\times B$, which can be rewritten as $(B\cdot\nabla)B - \tfrac{1}{2}\nabla|B|^{2} - (\nabla\cdot B)\,B$. The last term is identically zero for an exact solution but becomes a spurious force \emph{parallel to $B$} as soon as the discrete divergence is nonzero, breaking momentum conservation and eventually blowing up the run.
 
-Three remedies are in wide use: staggered constrained-transport
-schemes~\cite{balsara1999,londrillo2000}, the Powell eight-wave
-source-term formulation~\cite{powell1999}, and the hyperbolic
-generalized-Lagrange-multiplier (GLM) approach of Dedner et
-al.~\cite{dedner2002}.  GLM fits well with an unstaggered
-finite-volume code: it adds a single extra variable $\psi$ and a
-single extra equation, the new coupling only touches the normal
-magnetic-field component at each face, and the other seven MHD
-equations are unchanged.  That is the approach used here.
+Three remedies are in wide use: staggered constrained-transport schemes~\cite{balsara1999,londrillo2000}, the Powell eight-wave source-term formulation~\cite{powell1999}, and the hyperbolic generalized-Lagrange-multiplier (GLM) approach of Dedner et al.~\cite{dedner2002}.  GLM fits well with an unstaggered finite-volume code: it adds a single extra variable $\psi$ and a single extra equation, the new coupling only touches the normal magnetic-field component at each face, and the other seven MHD equations are unchanged.  That is the approach used here.
 
 \section{Numerical Model}
 
 \subsection{Finite volume discretization}
 
-The domain is covered by a uniform Cartesian grid with spacing
-$\Delta x$, $\Delta y$.  Cell-averaged conserved variables are stored
-at cell centers and updated via the integral form of the conservation
-law~\cite{versteeg2007,moukalled2016,toro2009}.  Each update requires
-a numerical flux at every face, and every numerical flux is obtained
-by solving an approximate Riemann problem between piecewise
-reconstructed left and right states.
+The domain is covered by a uniform Cartesian grid with spacing $\Delta x$, $\Delta y$.  Cell-averaged conserved variables are stored at cell centers and updated via the integral form of the conservation law~\cite{versteeg2007,moukalled2016,toro2009}.  Each update requires a numerical flux at every face, and every numerical flux is obtained by solving an approximate Riemann problem between piecewise reconstructed left and right states.
 
 In semi-discrete form, the update for cell $(i,j)$ is
 \begin{equation}
@@ -208,14 +102,9 @@ In semi-discrete form, the update for cell $(i,j)$ is
     -\frac{G_{i,j+1/2} - G_{i,j-1/2}}{\Delta y},
 \label{eq:semi-discrete}
 \end{equation}
-where $F_{i\pm 1/2,j}$ and $G_{i,j\pm 1/2}$ are the numerical fluxes
-returned by the HLLD Riemann solver at the four faces of the cell.
+where $F_{i\pm 1/2,j}$ and $G_{i,j\pm 1/2}$ are the numerical fluxes returned by the HLLD Riemann solver at the four faces of the cell.
 
-\Cref{fig:stencil} is a schematic of the MUSCL stencil used for the
-x-direction Riemann problem on one row of cells.  Two ghost layers
-are required on every side of the interior so that the three-cell
-stencil $U_{i-1},U_i,U_{i+1}$ that feeds the slope-limited
-reconstruction is always available.
+\Cref{fig:stencil} is a schematic of the MUSCL stencil used for the x-direction Riemann problem on one row of cells.  Two ghost layers are required on every side of the interior so that the three-cell stencil $U_{i-1},U_i,U_{i+1}$ that feeds the slope-limited reconstruction is always available.
 
 \begin{figure}[H]
 \centering
@@ -257,43 +146,29 @@ reconstruction is always available.
   \draw[decorate, decoration={brace, amplitude=4pt}]
     (6,1.2) -- (8,1.2) node[midway, above=4pt] {\scriptsize ghost};
 \end{tikzpicture}
-\caption{MUSCL stencil on one x-row.  Two ghost layers sandwich the
-interior; the red face $x_{i+1/2}$ sees a left-biased reconstruction
-$Q_{L}$ from cell $i$ and a right-biased reconstruction $Q_{R}$ from
-cell $i+1$, and the HLLD flux at that face is computed from the pair.}
+\caption{MUSCL stencil on one x-row.  Two ghost layers sandwich the interior; the red face $x_{i+1/2}$ sees a left-biased reconstruction $Q_{L}$ from cell $i$ and a right-biased reconstruction $Q_{R}$ from cell $i+1$, and the HLLD flux at that face is computed from the pair.}
 \label{fig:stencil}
 \end{figure}
 
-\Cref{fig:mesh-preview} shows the actual discretization used by the
-production $128\times 128$ run, with the Orszag-Tang initial velocity
-(blue) and initial magnetic field (red) overlaid on the cell grid.
-The grid lines are thinned by a factor of two for legibility; every
-cell is a unit of the finite-volume update.
+\Cref{fig:mesh-preview} shows the actual discretization used by the production $128\times 128$ run, with the Orszag-Tang initial velocity (blue) and initial magnetic field (red) overlaid on the cell grid. The grid lines are thinned by a factor of two for legibility; every cell is a unit of the finite-volume update.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{data/final/mesh_preview/figs/mesh_preview.pdf}
-\caption{Computational mesh with the Orszag-Tang initial conditions
-overlaid.  Left: initial velocity field.  Right: initial magnetic
-field.  Both are sampled on a coarse grid for clarity.}
+\caption{Computational mesh with the Orszag-Tang initial conditions overlaid.  Left: initial velocity field.  Right: initial magnetic field.  Both are sampled on a coarse grid for clarity.}
 \label{fig:mesh-preview}
 \end{figure}
 
 \subsection{Spatial reconstruction: MUSCL}
 
-The reconstruction is piecewise linear in the primitive variables
-$[\rho, u, v, w, B_x, B_y, B_z, p, \psi]$.  For each primitive $Q$ the
-limited slope $\sigma_i$ is built from the one-sided differences
-$\Delta_L = Q_i - Q_{i-1}$ and $\Delta_R = Q_{i+1} - Q_i$.  The two
-reconstructed states at the face $x_{i+1/2}$ are
+The reconstruction is piecewise linear in the primitive variables $[\rho, u, v, w, B_x, B_y, B_z, p, \psi]$.  For each primitive $Q$ the limited slope $\sigma_i$ is built from the one-sided differences $\Delta_L = Q_i - Q_{i-1}$ and $\Delta_R = Q_{i+1} - Q_i$.  The two reconstructed states at the face $x_{i+1/2}$ are
 \begin{equation}
 Q_{L,\,i+1/2} = Q_i + \tfrac{1}{2}\sigma_i,
 \qquad
 Q_{R,\,i+1/2} = Q_{i+1} - \tfrac{1}{2}\sigma_{i+1}.
 \label{eq:muscl}
 \end{equation}
-The current implementation offers three TVD limiters; whenever
-$\Delta_L\,\Delta_R \le 0$ the slope is set to zero, otherwise
+The current implementation offers three TVD limiters; whenever $\Delta_L\,\Delta_R \le 0$ the slope is set to zero, otherwise
 \begin{align}
 \text{minmod:}\quad
   \sigma &= \operatorname{sign}(\Delta_L)\,
@@ -305,28 +180,15 @@ $\Delta_L\,\Delta_R \le 0$ the slope is set to zero, otherwise
 \text{van Leer:}\quad
   \sigma &= \frac{2\,\Delta_L\,\Delta_R}{\Delta_L + \Delta_R}.
 \end{align}
-Minmod is the default.  Reconstructing primitives rather than
-conserved variables ensures that density and pressure remain positive
-when the limiter forces slopes to zero near extrema~\cite{toro2009}.
+Minmod is the default.  Reconstructing primitives rather than conserved variables ensures that density and pressure remain positive when the limiter forces slopes to zero near extrema~\cite{toro2009}.
 
 \subsection{Riemann solver: HLLD}
 
-The approximate Riemann problem is solved with the HLLD method of
-Miyoshi and Kusano~\cite{miyoshi2005}.  HLLD splits the five-wave MHD
-fan---two outer fast waves, two rotational Alfven waves, and a middle
-entropy wave---into four intermediate states.  For coplanar Riemann
-problems it exactly resolves isolated discontinuities, and with
-$B = 0$ it reduces to HLLC for pure hydrodynamics.
+The approximate Riemann problem is solved with the HLLD method of Miyoshi and Kusano~\cite{miyoshi2005}.  HLLD splits the five-wave MHD fan---two outer fast waves, two rotational Alfven waves, and a middle entropy wave---into four intermediate states.  For coplanar Riemann problems it exactly resolves isolated discontinuities, and with $B = 0$ it reduces to HLLC for pure hydrodynamics.
 
-The solver builds the intermediate states in three steps.  First it
-forms the entropy-wave speed $S_M$ from the HLL average.  It then
-constructs the two starred states $U^{*}_{L}$ and $U^{*}_{R}$ adjacent
-to $S_M$.  Finally it forms two double-starred states $U^{**}_{L}$
-and $U^{**}_{R}$ that carry the rotational discontinuities across the
-contact wave~\cite{miyoshi2005}.
+The solver builds the intermediate states in three steps.  First it forms the entropy-wave speed $S_M$ from the HLL average.  It then constructs the two starred states $U^{*}_{L}$ and $U^{*}_{R}$ adjacent to $S_M$.  Finally it forms two double-starred states $U^{**}_{L}$ and $U^{**}_{R}$ that carry the rotational discontinuities across the contact wave~\cite{miyoshi2005}.
 
-The numerical flux at the face is selected from the wave structure by
-the five wave speeds $S_L < S^{*}_{L} \le S_M \le S^{*}_{R} < S_R$:
+The numerical flux at the face is selected from the wave structure by the five wave speeds $S_L < S^{*}_{L} \le S_M \le S^{*}_{R} < S_R$:
 \begin{equation}
 F_{i+1/2} = \begin{cases}
 F_L           & \text{if } 0 \le S_L, \\
@@ -338,99 +200,63 @@ F_R           & \text{if } S_R < 0,
 \end{cases}
 \label{eq:hlld-select}
 \end{equation}
-with the intermediate fluxes obtained from the conservation
-relations $F^{*}_{K} = F_{K} + S_K\,(U^{*}_{K} - U_{K})$ and
-$F^{**}_{K} = F^{*}_{K} + S^{*}_{K}\,(U^{**}_{K} - U^{*}_{K})$ for
-$K \in \{L,R\}$.
+with the intermediate fluxes obtained from the conservation relations $F^{*}_{K} = F_{K} + S_K\,(U^{*}_{K} - U_{K})$ and $F^{**}_{K} = F^{*}_{K} + S^{*}_{K}\,(U^{**}_{K} - U^{*}_{K})$ for $K \in \{L,R\}$.
 
 \subsection{GLM divergence cleaning}
 
-The GLM formulation augments the MHD system with a scalar $\psi$
-that couples to the normal magnetic field in a hyperbolic
-damped-wave manner~\cite{dedner2002}.  At the face level, the
-coupling reduces to a pure 2x2 Riemann problem with eigenvalues
-$\pm c_h$ whose solution at the interface is
+The GLM formulation augments the MHD system with a scalar $\psi$ that couples to the normal magnetic field in a hyperbolic damped-wave manner~\cite{dedner2002}.  At the face level, the coupling reduces to a pure 2x2 Riemann problem with eigenvalues $\pm c_h$ whose solution at the interface is
 \begin{align}
   B^{*}_{n}  &= \tfrac{1}{2}(B_{n,L} + B_{n,R})
                - \tfrac{1}{2}(\psi_R - \psi_L)/c_h,\\
   \psi^{*}   &= \tfrac{1}{2}(\psi_L + \psi_R)
                - \tfrac{1}{2}\,c_h\,(B_{n,R} - B_{n,L}).
 \end{align}
-These replace the ``trivial'' normal-B flux and the psi-equation
-flux in the HLLD evaluation.  The parabolic damping
-$d\psi/dt = -(c_h/c_r)\psi$ is integrated analytically over each RK
-stage of length $\Delta t$ with $c_r = 0.18$, the value recommended
-in~\cite{dedner2002}, giving the closed-form update
+These replace the ``trivial'' normal-B flux and the psi-equation flux in the HLLD evaluation.  The parabolic damping $d\psi/dt = -(c_h/c_r)\psi$ is integrated analytically over each RK stage of length $\Delta t$ with $c_r = 0.18$, the value recommended in~\cite{dedner2002}, giving the closed-form update
 \begin{equation}
 \psi \;\leftarrow\; \psi\,\exp\!\bigl(-\Delta t\,c_h / c_r\bigr).
 \label{eq:psi-damp}
 \end{equation}
-The cleaning speed $c_h$ is updated once per step to the current
-global maximum of $|u_n| + c_f$.
+The cleaning speed $c_h$ is updated once per step to the current global maximum of $|u_n| + c_f$.
 
 \subsection{Time integration}
 
-The semi-discrete scheme is advanced with the strong-stability-
-preserving RK2 method of Shu and Osher~\cite{shu1988},
+The semi-discrete scheme is advanced with the strong-stability- preserving RK2 method of Shu and Osher~\cite{shu1988},
 \begin{equation}
 U^{*} = U^{n} + \Delta t\,L(U^{n}),
 \qquad
 U^{n+1} = \tfrac{1}{2}\bigl(U^{n} + U^{*} + \Delta t\,L(U^{*})\bigr),
 \end{equation}
-with $L(U) = -(\partial_x F + \partial_y G)$ evaluated on the
-interior cells.  The CFL condition uses the fast magnetosonic speed
-$c_f$ plus the cleaning speed $c_h$:
+with $L(U) = -(\partial_x F + \partial_y G)$ evaluated on the interior cells.  The CFL condition uses the fast magnetosonic speed $c_f$ plus the cleaning speed $c_h$:
 \begin{equation}
 \Delta t \;=\; \mathrm{CFL}\,\cdot\,
   \frac{\min(\Delta x, \Delta y)}
        {\max(|u|+c_f,\;|v|+c_f,\;c_h)},
 \qquad \mathrm{CFL}=0.3.
 \end{equation}
-Ghost cells (two layers on each side, each direction) carry the
-boundary conditions.  For Orszag-Tang all four boundaries are
-periodic; outflow and reflective kinds are implemented but not
-exercised in this report.
+Ghost cells (two layers on each side, each direction) carry the boundary conditions.  For Orszag-Tang all four boundaries are periodic; outflow and reflective kinds are implemented but not exercised in this report.
 
 \section{Validation}
 
 \subsection{Qualitative comparison on the Orszag-Tang vortex}
 
-The initial conditions, following Londrillo and Del
-Zanna~\cite{londrillo2000}, are uniform density $\rho = 1$ and
-uniform pressure $p = 1/\gamma$ on $[0,1]^{2}$ with
+The initial conditions, following Londrillo and Del Zanna~\cite{londrillo2000}, are uniform density $\rho = 1$ and uniform pressure $p = 1/\gamma$ on $[0,1]^{2}$ with
 \begin{align}
 v(x,y,0) &= (-\sin 2\pi y,\; \sin 2\pi x,\; 0),\\
 B(x,y,0) &= B_{0}\,(-\sin 2\pi y,\; \sin 4\pi x,\; 0),
 \qquad B_{0}=1/\gamma.
 \end{align}
-All four boundaries are periodic.  The run is advanced to $t = 0.5$,
-the standard comparison time.
+All four boundaries are periodic.  The run is advanced to $t = 0.5$, the standard comparison time.
 
-\Cref{fig:rho-final} shows the density at $t = 0.5$ on a $128\times
-128$ grid with the minmod limiter.  The characteristic Orszag-Tang
-topology is recovered: central bow-tie current sheet along $y \approx
-0.5$, four oblique shocks bounding low-density bays, and symmetric
-compressed ridges near the top and bottom of the domain.  The same
-features appear in Athena, Athena++, and PLUTO test-suite renderings
-of the same time slice~\cite{londrillo2000,athena_orszag_tang}.
+\Cref{fig:rho-final} shows the density at $t = 0.5$ on a $128\times 128$ grid with the minmod limiter.  The characteristic Orszag-Tang topology is recovered: central bow-tie current sheet along $y \approx 0.5$, four oblique shocks bounding low-density bays, and symmetric compressed ridges near the top and bottom of the domain.  The same features appear in Athena, Athena++, and PLUTO test-suite renderings of the same time slice~\cite{londrillo2000,athena_orszag_tang}.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.65\linewidth]{data/final/orszag_tang_128/figs/rho_final.pdf}
-\caption{Density at $t = 0.5$ on a $128^{2}$ grid.  The central bow-tie
-current sheet, symmetric oblique shocks, and density ridges near the
-top/bottom of the domain match the canonical reference
-pattern~\cite{londrillo2000,athena_orszag_tang}.}
+\caption{Density at $t = 0.5$ on a $128^{2}$ grid.  The central bow-tie current sheet, symmetric oblique shocks, and density ridges near the top/bottom of the domain match the canonical reference pattern~\cite{londrillo2000,athena_orszag_tang}.}
 \label{fig:rho-final}
 \end{figure}
 
-The thermal and magnetic pressures at the same time are shown in
-\Cref{fig:p-final,fig:pmag-final}.  The thermal pressure tracks the
-density compressions with an additional contribution from
-shock-heating in the vicinity of the current sheet.  The magnetic
-pressure $\tfrac{1}{2}|B|^{2}$ peaks along the four symmetric
-current-sheet arms, which is the signature of flux pile-up just
-upstream of the reconnection line.
+The thermal and magnetic pressures at the same time are shown in \Cref{fig:p-final,fig:pmag-final}.  The thermal pressure tracks the density compressions with an additional contribution from shock-heating in the vicinity of the current sheet.  The magnetic pressure $\tfrac{1}{2}|B|^{2}$ peaks along the four symmetric current-sheet arms, which is the signature of flux pile-up just upstream of the reconnection line.
 
 \begin{figure}[H]
 \centering
@@ -442,19 +268,13 @@ upstream of the reconnection line.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.65\linewidth]{data/final/orszag_tang_128/figs/pmag_final.pdf}
-\caption{Magnetic pressure $\tfrac{1}{2}|B|^{2}$ at $t = 0.5$ on
-$128^{2}$.  Peaks correspond to flux pile-up along the four
-current-sheet arms.}
+\caption{Magnetic pressure $\tfrac{1}{2}|B|^{2}$ at $t = 0.5$ on $128^{2}$.  Peaks correspond to flux pile-up along the four current-sheet arms.}
 \label{fig:pmag-final}
 \end{figure}
 
 \subsection{Time evolution}
 
-\Cref{fig:rho-evo} shows the density at three intermediate times to
-document how the current sheet forms.  At $t = 0.1$ the flow is still
-essentially smooth; by $t = 0.3$ the diagonal shocks have formed and
-started to drive gas into the central bow-tie; by $t = 0.5$ the
-bow-tie has fully developed.
+\Cref{fig:rho-evo} shows the density at three intermediate times to document how the current sheet forms.  At $t = 0.1$ the flow is still essentially smooth; by $t = 0.3$ the diagonal shocks have formed and started to drive gas into the central bow-tie; by $t = 0.5$ the bow-tie has fully developed.
 
 \begin{figure}[H]
 \centering
@@ -467,19 +287,13 @@ bow-tie has fully developed.
 \begin{minipage}{0.32\linewidth}
 \includegraphics[width=\linewidth]{data/final/orszag_tang_128/figs/rho_final.pdf}
 \end{minipage}
-\caption{Density at $t = 0.1$, $0.3$, and $0.5$ showing the formation
-of the central current sheet and the four bounding oblique shocks.}
+\caption{Density at $t = 0.1$, $0.3$, and $0.5$ showing the formation of the central current sheet and the four bounding oblique shocks.}
 \label{fig:rho-evo}
 \end{figure}
 
 \subsection{Convergence study}
 
-A grid-refinement study was run at $32^{2}$, $64^{2}$, and $128^{2}$
-against a $256^{2}$ reference, all using the same minmod limiter and
-same CFL.  Errors in density were computed by area-averaging the
-reference onto each coarse grid and taking the $L^{1}$ and $L^{2}$
-norms of the difference.  The results are tabulated in
-\Cref{tab:conv} and plotted in \Cref{fig:conv}.
+A grid-refinement study was run at $32^{2}$, $64^{2}$, and $128^{2}$ against a $256^{2}$ reference, all using the same minmod limiter and same CFL.  Errors in density were computed by area-averaging the reference onto each coarse grid and taking the $L^{1}$ and $L^{2}$ norms of the difference.  The results are tabulated in \Cref{tab:conv} and plotted in \Cref{fig:conv}.
 
 \begin{table}[H]
 \centering
@@ -489,150 +303,68 @@ nx & $L^{1}$ error & $L^{2}$ error \\
 64  & 7.271e-2 & 1.074e-1 \\
 128 & 2.873e-2 & 4.258e-2 \\
 \end{tblr}
-\caption{Grid-refinement errors in density against the $256^{2}$
-reference at $t = 0.5$.}
+\caption{Grid-refinement errors in density against the $256^{2}$ reference at $t = 0.5$.}
 \label{tab:conv}
 \end{table}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.65\linewidth]{data/final/convergence/figs/convergence.pdf}
-\caption{$L^{1}$ and $L^{2}$ density errors vs grid resolution, with
-first- and second-order reference slopes.}
+\caption{$L^{1}$ and $L^{2}$ density errors vs grid resolution, with first- and second-order reference slopes.}
 \label{fig:conv}
 \end{figure}
 
-The observed convergence rate between $32 \to 64$ is
-$\log_{2}(0.126/0.073) \approx 0.79$ and between $64 \to 128$ is
-$\log_{2}(0.073/0.029) \approx 1.33$.  The overall trend is
-super-first-order but sub-second-order.  This is the expected
-behavior for a MUSCL-minmod solver on a shock-dominated problem: in
-smooth regions the scheme is second-order, but at shocks and current
-sheets the limiter clips slopes and the local order drops to one, so
-the global rate sits between~\cite{toro2009}.
+The observed convergence rate between $32 \to 64$ is $\log_{2}(0.126/0.073) \approx 0.79$ and between $64 \to 128$ is $\log_{2}(0.073/0.029) \approx 1.33$.  The overall trend is super-first-order but sub-second-order.  This is the expected behavior for a MUSCL-minmod solver on a shock-dominated problem: in smooth regions the scheme is second-order, but at shocks and current sheets the limiter clips slopes and the local order drops to one, so the global rate sits between~\cite{toro2009}.
 
 \subsection{Divergence control}
 
-\Cref{fig:divb-hist} shows the time history of $\max|\nabla\cdot B|$
-on the $128^{2}$ run, measured by centered differences on the
-cell-centered $B$.  The error grows during the shock-forming
-transient (up to $t \approx 0.15$), then plateaus near $10^{0}$ to
-$10^{1}$ through most of the run, with a late uptick near $t = 0.5$
-as the current sheet tightens.
+\Cref{fig:divb-hist} shows the time history of $\max|\nabla\cdot B|$ on the $128^{2}$ run, measured by centered differences on the cell-centered $B$.  The error grows during the shock-forming transient (up to $t \approx 0.15$), then plateaus near $10^{0}$ to $10^{1}$ through most of the run, with a late uptick near $t = 0.5$ as the current sheet tightens.
 
-Values above unity look alarming but are an artifact of the
-diagnostic.  GLM does not damp this centered-difference operator
-directly; it damps a different discrete divergence built into the
-$\psi$ evolution, which stays consistently smaller.  The qualitative
-solution is unaffected~\cite{dedner2002}.
+Values above unity look alarming but are an artifact of the diagnostic.  GLM does not damp this centered-difference operator directly; it damps a different discrete divergence built into the $\psi$ evolution, which stays consistently smaller.  The qualitative solution is unaffected~\cite{dedner2002}.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.65\linewidth]{data/final/orszag_tang_128/figs/divb_history.pdf}
-\caption{Time history of $\max|\nabla\cdot B|$ on the $128^{2}$ run,
-semilog.  GLM cleaning bounds the error after the shocks have
-formed.}
+\caption{Time history of $\max|\nabla\cdot B|$ on the $128^{2}$ run, semilog.  GLM cleaning bounds the error after the shocks have formed.}
 \label{fig:divb-hist}
 \end{figure}
 
 \subsection{Conservation}
 
-Mass, all three components of momentum, and total energy are
-conserved to machine precision at every logged step of the run
-(drift $\sim 10^{-16}$ per step, see \texttt{run.log}).  This is
-expected from a conservative finite-volume update and is a useful
-consistency check on the flux computation and the boundary fills.
+Mass, all three components of momentum, and total energy are conserved to machine precision at every logged step of the run (drift $\sim 10^{-16}$ per step, see \texttt{run.log}).  This is expected from a conservative finite-volume update and is a useful consistency check on the flux computation and the boundary fills.
 
 \section{Discussion of Results}
 
 \subsection{Accuracy}
 
-The shock positions and the topology of the central current sheet
-match the reference solutions qualitatively at $128^{2}$.
-Quantitatively the observed density extrema are $\rho_{\min}
-\approx 0.47$ and $\rho_{\max} \approx 2.16$, compared with
-roughly $\rho_{\min} \approx 0.1$ and $\rho_{\max} \approx 3.5$ in
-Athena runs at the same resolution with the MC
-limiter~\cite{athena_orszag_tang}.  The discrepancy is dominated by
-the choice of limiter: minmod is the most diffusive of the common
-TVD limiters and smears sharp features faster than MC or van Leer.
-Repeating with MC limiter would close most of that gap; the
-trade-off is that MC is less robust near low-beta cells.
+The shock positions and the topology of the central current sheet match the reference solutions qualitatively at $128^{2}$. Quantitatively the observed density extrema are $\rho_{\min} \approx 0.47$ and $\rho_{\max} \approx 2.16$, compared with roughly $\rho_{\min} \approx 0.1$ and $\rho_{\max} \approx 3.5$ in Athena runs at the same resolution with the MC limiter~\cite{athena_orszag_tang}.  The discrepancy is dominated by the choice of limiter: minmod is the most diffusive of the common TVD limiters and smears sharp features faster than MC or van Leer. Repeating with MC limiter would close most of that gap; the trade-off is that MC is less robust near low-beta cells.
 
 \subsection{Convergence}
 
-The observed rate between $1.0$ and $1.3$ is consistent with the
-theoretical expectation for MUSCL-minmod on a shock-dominated flow.
-Toro~\cite{toro2009} shows explicitly that the global convergence
-rate of TVD Godunov schemes on problems with discontinuities sits
-between one and two, with the exact number depending on how much of
-the solution is smooth.  For Orszag-Tang at $t=0.5$ essentially all
-of the solution has at least weak gradients, which is why the rate
-is closer to one than two.
+The observed rate between $1.0$ and $1.3$ is consistent with the theoretical expectation for MUSCL-minmod on a shock-dominated flow. Toro~\cite{toro2009} shows explicitly that the global convergence rate of TVD Godunov schemes on problems with discontinuities sits between one and two, with the exact number depending on how much of the solution is smooth.  For Orszag-Tang at $t=0.5$ essentially all of the solution has at least weak gradients, which is why the rate is closer to one than two.
 
 \subsection{Divergence control and scheme robustness}
 
-$\max|\nabla\cdot B|$ grows during shock formation, plateaus in the
-range $10^{0}$--$10^{1}$ through the bulk of the run, and shows a
-late-time uptick near $t = 0.5$ as the current sheet tightens.  This
-is the expected behavior for hyperbolic GLM
-cleaning~\cite{dedner2002}: the scheme keeps the divergence error
-bounded rather than decaying it to zero, and the absolute scale of
-the centered-difference diagnostic is set by the resolution and the
-strength of the current sheet.  The solver remains stable, mass and
-energy are conserved to machine precision, and there is no visible
-corruption of the density or pressure patterns.
+$\max|\nabla\cdot B|$ grows during shock formation, plateaus in the range $10^{0}$--$10^{1}$ through the bulk of the run, and shows a late-time uptick near $t = 0.5$ as the current sheet tightens.  This is the expected behavior for hyperbolic GLM cleaning~\cite{dedner2002}: the scheme keeps the divergence error bounded rather than decaying it to zero, and the absolute scale of the centered-difference diagnostic is set by the resolution and the strength of the current sheet.  The solver remains stable, mass and energy are conserved to machine precision, and there is no visible corruption of the density or pressure patterns.
 
 \subsection{Limitations}
 
-Three limitations deserve to be explicit.  First, the current
-implementation is vectorized NumPy: on the 128 grid the code runs a
-full Orszag-Tang simulation to $t = 0.5$ in roughly seven seconds on
-a laptop, but the $256^{2}$ reference already takes close to a
-minute, and $512^{2}$ would be the practical ceiling for this code
-base.  Second, there is no constrained-transport option: GLM was
-chosen for implementation simplicity and will produce slightly
-larger divergence errors than CT on pathological
-cases~\cite{balsara1999,londrillo2000}.  Third, the solver is
-strictly 2D Cartesian with no adaptive refinement; any extension to
-3D or to curvilinear geometry would require a rewrite of the mesh
-and boundary modules.
+Three limitations deserve to be explicit.  First, the current implementation is vectorized NumPy: on the 128 grid the code runs a full Orszag-Tang simulation to $t = 0.5$ in roughly seven seconds on a laptop, but the $256^{2}$ reference already takes close to a minute, and $512^{2}$ would be the practical ceiling for this code base.  Second, there is no constrained-transport option: GLM was chosen for implementation simplicity and will produce slightly larger divergence errors than CT on pathological cases~\cite{balsara1999,londrillo2000}.  Third, the solver is strictly 2D Cartesian with no adaptive refinement; any extension to 3D or to curvilinear geometry would require a rewrite of the mesh and boundary modules.
 
 \subsection{Comparison with reference implementations}
 
-The Athena~\cite{athena_orszag_tang} and PLUTO test suites are the
-de-facto community benchmarks for Orszag-Tang.  The qualitative
-match at $t = 0.5$ is very close: the central bow-tie, the symmetric
-oblique shocks, and the four magnetic-pressure peaks are all
-present in the expected locations.  The quantitative differences
-are explicable by the choice of limiter (minmod here vs MC or
-third-order reconstruction in Athena++), grid resolution, and the
-specific form of divergence control.
+The Athena~\cite{athena_orszag_tang} and PLUTO test suites are the de-facto community benchmarks for Orszag-Tang.  The qualitative match at $t = 0.5$ is very close: the central bow-tie, the symmetric oblique shocks, and the four magnetic-pressure peaks are all present in the expected locations.  The quantitative differences are explicable by the choice of limiter (minmod here vs MC or third-order reconstruction in Athena++), grid resolution, and the specific form of divergence control.
 
 \section{Conclusions}
 
-A 2D ideal MHD finite volume solver was implemented from scratch in
-Python.  The spatial discretization is MUSCL-minmod on primitive
-variables; the Riemann solver is HLLD~\cite{miyoshi2005}; the
-divergence constraint is handled with hyperbolic GLM
-cleaning~\cite{dedner2002}; and time integration uses
-SSP-RK2~\cite{shu1988}.  Validation on the Orszag-Tang vortex
-reproduces the canonical density and pressure patterns at
-$t = 0.5$~\cite{londrillo2000,athena_orszag_tang}, conserves mass
-and energy to machine precision, bounds the maximum divergence
-error via GLM, and exhibits the expected between-first-and-
-second-order convergence rate on a shock-dominated 2D flow.
+A 2D ideal MHD finite volume solver was implemented from scratch in Python.  The spatial discretization is MUSCL-minmod on primitive variables; the Riemann solver is HLLD~\cite{miyoshi2005}; the divergence constraint is handled with hyperbolic GLM cleaning~\cite{dedner2002}; and time integration uses SSP-RK2~\cite{shu1988}.  Validation on the Orszag-Tang vortex reproduces the canonical density and pressure patterns at $t = 0.5$~\cite{londrillo2000,athena_orszag_tang}, conserves mass and energy to machine precision, bounds the maximum divergence error via GLM, and exhibits the expected between-first-and- second-order convergence rate on a shock-dominated 2D flow.
 
-Natural extensions are: a constrained-transport alternative to GLM
-for strict divergence-free evolution; resistive MHD; 3D; AMR; and a
-Numba- or JAX-compiled core to lift the practical resolution
-ceiling.
+Natural extensions are: a constrained-transport alternative to GLM for strict divergence-free evolution; resistive MHD; 3D; AMR; and a Numba- or JAX-compiled core to lift the practical resolution ceiling.
 
 \appendix
 \section{Code Listings}
 
-The full source is at the repository root under \texttt{vortex/}.
-Key modules are listed below.
+The full source is at the repository root under \texttt{vortex/}. Key modules are listed below.
 
 \subsection{\texttt{vortex/equations.py}}
 \inputminted[firstline=22]{python}{vortex/equations.py}
