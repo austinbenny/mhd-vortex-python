@@ -85,7 +85,16 @@ The system is hyperbolic but not strictly so: the seven wave families of the 1D 
 
 $\nabla\cdot B = 0$ is Gauss's law for magnetism: there are no magnetic monopoles, so field lines cannot start or end inside the domain.  The induction equation in MHD preserves this constraint analytically---the exact time evolution of $B$ is divergence-free if the initial data are.
 
-Discrete schemes do not inherit the property automatically~\cite{balsara1999,powell1999}.  The induction equation is updated from interface electric fields that, under piecewise reconstruction, produce a small but nonzero divergence at every cell center.  The physical consequence is direct: the Lorentz force has the form $(\nabla\times B)\times B$, which can be rewritten as $(B\cdot\nabla)B - \tfrac{1}{2}\nabla|B|^{2} - (\nabla\cdot B)\,B$. The last term is identically zero for an exact solution but becomes a spurious force \emph{parallel to $B$} as soon as the discrete divergence is nonzero, breaking momentum conservation and eventually blowing up the run.
+Discrete schemes do not inherit the property automatically~\cite{balsara1999,powell1999}.  The induction equation is updated from interface electric fields that, under piecewise reconstruction, produce a small but nonzero divergence at every cell center.  The physical consequence is direct.  The Lorentz force is given by the vector identity
+\[
+(\nabla\times B)\times B \;=\; (B\cdot\nabla)B \;-\; \tfrac{1}{2}\nabla|B|^{2},
+\]
+but a finite-volume update evaluates the divergence of the conservative Maxwell stress instead, and the two differ by an exact $(\nabla\cdot B)$ term:
+\[
+\nabla\cdot\!\bigl(BB^{T} - \tfrac{1}{2}|B|^{2}I\bigr)
+  \;=\; (\nabla\times B)\times B \;+\; (\nabla\cdot B)\,B.
+\]
+The extra $(\nabla\cdot B)\,B$ contribution is identically zero for an exact solution but becomes a spurious force \emph{parallel to $B$} as soon as the discrete divergence is nonzero, breaking momentum conservation and eventually blowing up the run.  The conservative momentum flux that the solver actually evaluates is the $-B_x^{2}$, $-B_xB_y$, $-B_xB_z$ block of $F(U)$ above; see Appendix~\ref{app:discrete} for the full set of discrete equations.
 
 Three remedies are in wide use: staggered constrained-transport schemes~\cite{balsara1999,londrillo2000}, the Powell eight-wave source-term formulation~\cite{powell1999}, and the hyperbolic generalized-Lagrange-multiplier (GLM) approach of Dedner et al.~\cite{dedner2002}.  GLM fits well with an unstaggered finite-volume code: it adds a single extra variable $\psi$ and a single extra equation, the new coupling only touches the normal magnetic-field component at each face, and the other seven MHD equations are unchanged.  That is the approach used here.
 
