@@ -14,23 +14,22 @@
 %====================================================================
 
 Magnetohydrodynamics (MHD) describes an electrically conducting fluid
-in which the bulk flow and the magnetic field evolve as a single
-coupled system.  The single-fluid ideal MHD equations are the natural
-limit of the two-fluid plasma equations when the plasma is dense
-enough that electrons and ions move together, and the magnetic
-Reynolds number is large enough that resistive diffusion is
-negligible~\cite{chen2016,freidberg2014}.  This limit is appropriate
-across a wide range of applications: the solar wind, tokamak
-confinement, astrophysical jets, and the Earth's magnetosphere.
+in which the flow and the magnetic field evolve as a single coupled
+system.  The single-fluid ideal MHD equations apply when electrons
+and ions move together and resistive diffusion is
+negligible~\cite{chen2016,freidberg2014}.  That regime covers the
+solar wind, tokamak confinement, astrophysical jets, and the Earth's
+magnetosphere.
 
-What makes MHD qualitatively different from the ordinary Euler system
-is the introduction of the Lorentz force, three new wave families
-(fast/slow magnetosonic and Alfven), and a solenoidal constraint
-div(B) = 0 inherited from Maxwell's equations.  A practical finite
-volume solver must resolve the seven-wave MHD Riemann fan, control
-the divergence constraint numerically, and stay robust at strong
-shocks and in low-plasma-beta regions where the magnetic pressure
-dominates the gas pressure.
+MHD differs from the Euler system in three ways: the Lorentz force
+couples the fluid to the field, three new wave families appear (fast
+and slow magnetosonic, plus Alfven), and Maxwell's equations impose
+the solenoidal constraint div(B) = 0.
+
+A practical finite-volume solver therefore has to resolve the
+seven-wave MHD Riemann fan, control the divergence constraint
+numerically, and stay robust at strong shocks and in low-beta regions
+where magnetic pressure dominates.
 
 The goal of this project is to build such a solver from scratch in
 Python and to validate it on the 2D Orszag-Tang vortex.  The
@@ -78,8 +77,21 @@ u B_z - w B_x \\
 (E + p_T)u - B_x (u B_x + v B_y + w B_z)
 \end{pmatrix}.
 \end{equation}
-The y-direction flux $G(U)$ follows by swapping the x and y momenta
-and magnetic components.  Closure is by the ideal-gas relation
+The y-direction flux is obtained by swapping the roles of $u$ and $v$,
+and $B_x$ and $B_y$:
+\begin{equation}
+G(U) = \begin{pmatrix}
+\rho v \\
+\rho v u - B_y B_x \\
+\rho v^{2} + p_T - B_y^{2} \\
+\rho v w - B_y B_z \\
+v B_x - u B_y \\
+0 \\
+v B_z - w B_y \\
+(E + p_T)v - B_y (u B_x + v B_y + w B_z)
+\end{pmatrix}.
+\end{equation}
+Closure is by the ideal-gas relation
 $p = (\gamma-1)(E - \tfrac{1}{2}\rho |v|^{2} - \tfrac{1}{2}|B|^{2})$
 with $\gamma = 5/3$.
 
@@ -101,15 +113,15 @@ unchecked, this leads to an unphysical parallel-to-B Lorentz force,
 loss of momentum conservation, and eventual blow-up of the
 computation.
 
-Several remedies are in wide use: staggered constrained-transport
-schemes~\cite{balsara1999,londrillo2000}, the Powell
-eight-wave source-term formulation~\cite{powell1999}, and the
-hyperbolic generalized-Lagrange-multiplier (GLM) approach of Dedner
-et al.~\cite{dedner2002}.  GLM is attractive for an unstaggered
-finite-volume code because it only adds one extra equation and one
-extra variable $\psi$, couples at the Riemann-solver level exclusively
-to the normal magnetic field, and leaves the remaining seven MHD
-equations structurally unchanged.  That is the approach used here.
+Three remedies are in wide use: staggered constrained-transport
+schemes~\cite{balsara1999,londrillo2000}, the Powell eight-wave
+source-term formulation~\cite{powell1999}, and the hyperbolic
+generalized-Lagrange-multiplier (GLM) approach of Dedner et
+al.~\cite{dedner2002}.  GLM fits well with an unstaggered
+finite-volume code: it adds a single extra variable $\psi$ and a
+single extra equation, the new coupling only touches the normal
+magnetic-field component at each face, and the other seven MHD
+equations are unchanged.  That is the approach used here.
 
 %====================================================================
 \section{Numerical Model}
@@ -124,6 +136,16 @@ law~\cite{versteeg2007,moukalled2016,toro2009}.  Each update requires
 a numerical flux at every face, and every numerical flux is obtained
 by solving an approximate Riemann problem between piecewise
 reconstructed left and right states.
+
+In semi-discrete form, the update for cell $(i,j)$ is
+\begin{equation}
+\frac{dU_{i,j}}{dt}
+  = -\frac{F_{i+1/2,j} - F_{i-1/2,j}}{\Delta x}
+    -\frac{G_{i,j+1/2} - G_{i,j-1/2}}{\Delta y},
+\label{eq:semi-discrete}
+\end{equation}
+where $F_{i\pm 1/2,j}$ and $G_{i,j\pm 1/2}$ are the numerical fluxes
+returned by the HLLD Riemann solver at the four faces of the cell.
 
 \Cref{fig:stencil} is a schematic of the MUSCL stencil used for the
 x-direction Riemann problem on one row of cells.  Two ghost layers
@@ -157,12 +179,12 @@ reconstruction is always available.
   \node at (7.5,0.5) {$U_{n+1}$};
   % Highlighted face.
   \draw[red, thick] (4,-0.1) -- (4,1.1);
-  \node[red, below] at (4,-0.2) {$x_{i+1/2}$};
+  \node[red, anchor=north] at (4,-0.15) {$x_{i+1/2}$};
   % Reconstructed states at the face.
-  \node[below] at (3.75,-0.8) {$Q_{L}$};
-  \node[below] at (4.25,-0.8) {$Q_{R}$};
-  \draw[->, thick] (3.0,-0.6) -- (3.9,-0.6);
-  \draw[<-, thick] (4.1,-0.6) -- (5.0,-0.6);
+  \draw[->, thick] (3.0,-0.95) -- (3.9,-0.95);
+  \draw[<-, thick] (4.1,-0.95) -- (5.0,-0.95);
+  \node at (3.45,-1.3) {$Q_{L}$};
+  \node at (4.55,-1.3) {$Q_{R}$};
   % Brace for ghost + interior.
   \draw[decorate, decoration={brace, amplitude=4pt}]
     (0,1.2) -- (2,1.2) node[midway, above=4pt] {\scriptsize ghost};
@@ -196,27 +218,66 @@ field.  Both are sampled on a coarse grid for clarity.}
 \subsection{Spatial reconstruction: MUSCL}
 
 The reconstruction is piecewise linear in the primitive variables
-$[\rho, u, v, w, B_x, B_y, B_z, p, \psi]$.  The slope in each cell is
-computed from the one-sided differences with a TVD limiter; the
-current implementation offers minmod (default), monotonized-central,
-and van Leer.  Reconstructing primitives rather than conserved
-variables ensures that density and pressure remain positive when the
-limiter forces slopes to zero near extrema~\cite{toro2009}.
+$[\rho, u, v, w, B_x, B_y, B_z, p, \psi]$.  For each primitive $Q$ the
+limited slope $\sigma_i$ is built from the one-sided differences
+$\Delta_L = Q_i - Q_{i-1}$ and $\Delta_R = Q_{i+1} - Q_i$.  The two
+reconstructed states at the face $x_{i+1/2}$ are
+\begin{equation}
+Q_{L,\,i+1/2} = Q_i + \tfrac{1}{2}\sigma_i,
+\qquad
+Q_{R,\,i+1/2} = Q_{i+1} - \tfrac{1}{2}\sigma_{i+1}.
+\label{eq:muscl}
+\end{equation}
+The current implementation offers three TVD limiters; whenever
+$\Delta_L\,\Delta_R \le 0$ the slope is set to zero, otherwise
+\begin{align}
+\text{minmod:}\quad
+  \sigma &= \operatorname{sign}(\Delta_L)\,
+            \min\!\bigl(|\Delta_L|,\,|\Delta_R|\bigr), \\
+\text{monotonized-central (MC):}\quad
+  \sigma &= \operatorname{sign}(\Delta_C)\,
+            \min\!\bigl(2|\Delta_L|,\,2|\Delta_R|,\,|\Delta_C|\bigr),
+            \quad \Delta_C = \tfrac{1}{2}(\Delta_L + \Delta_R), \\
+\text{van Leer:}\quad
+  \sigma &= \frac{2\,\Delta_L\,\Delta_R}{\Delta_L + \Delta_R}.
+\end{align}
+Minmod is the default.  Reconstructing primitives rather than
+conserved variables ensures that density and pressure remain positive
+when the limiter forces slopes to zero near extrema~\cite{toro2009}.
 
 \subsection{Riemann solver: HLLD}
 
 The approximate Riemann problem is solved with the HLLD method of
-Miyoshi and Kusano~\cite{miyoshi2005}.  HLLD represents the
-five-wave MHD fan (two outermost fast waves, two rotational Alfven
-waves, and the middle entropy wave) with four intermediate states.
-For coplanar Riemann problems it exactly resolves isolated
-discontinuities, and it degenerates cleanly to HLLC for pure
-hydrodynamics (B = 0).  Between the fast waves the solver first
-constructs the single-state HLL bound and the entropy wave speed
-$S_M$, then the two starred states $U^{*}_{L}$ and $U^{*}_{R}$, and
-finally two double-starred states $U^{**}_{L}$ and $U^{**}_{R}$ that
-carry the rotational discontinuities across the contact
-wave~\cite{miyoshi2005}.
+Miyoshi and Kusano~\cite{miyoshi2005}.  HLLD splits the five-wave MHD
+fan---two outer fast waves, two rotational Alfven waves, and a middle
+entropy wave---into four intermediate states.  For coplanar Riemann
+problems it exactly resolves isolated discontinuities, and with
+$B = 0$ it reduces to HLLC for pure hydrodynamics.
+
+The solver builds the intermediate states in three steps.  First it
+forms the entropy-wave speed $S_M$ from the HLL average.  It then
+constructs the two starred states $U^{*}_{L}$ and $U^{*}_{R}$ adjacent
+to $S_M$.  Finally it forms two double-starred states $U^{**}_{L}$
+and $U^{**}_{R}$ that carry the rotational discontinuities across the
+contact wave~\cite{miyoshi2005}.
+
+The numerical flux at the face is selected from the wave structure by
+the five wave speeds $S_L < S^{*}_{L} \le S_M \le S^{*}_{R} < S_R$:
+\begin{equation}
+F_{i+1/2} = \begin{cases}
+F_L           & \text{if } 0 \le S_L, \\
+F^{*}_{L}     & \text{if } S_L < 0 \le S^{*}_{L}, \\
+F^{**}_{L}    & \text{if } S^{*}_{L} < 0 \le S_M, \\
+F^{**}_{R}    & \text{if } S_M < 0 \le S^{*}_{R}, \\
+F^{*}_{R}     & \text{if } S^{*}_{R} < 0 \le S_R, \\
+F_R           & \text{if } S_R < 0,
+\end{cases}
+\label{eq:hlld-select}
+\end{equation}
+with the intermediate fluxes obtained from the conservation
+relations $F^{*}_{K} = F_{K} + S_K\,(U^{*}_{K} - U_{K})$ and
+$F^{**}_{K} = F^{*}_{K} + S^{*}_{K}\,(U^{**}_{K} - U^{*}_{K})$ for
+$K \in \{L,R\}$.
 
 \subsection{GLM divergence cleaning}
 
@@ -234,9 +295,14 @@ $\pm c_h$ whose solution at the interface is
 These replace the ``trivial'' normal-B flux and the psi-equation
 flux in the HLLD evaluation.  The parabolic damping
 $d\psi/dt = -(c_h/c_r)\psi$ is integrated analytically over each RK
-stage with $c_r = 0.18$, the value recommended
-in~\cite{dedner2002}.  The cleaning speed $c_h$ is updated once per
-step to the current global maximum of $|u_n| + c_f$.
+stage of length $\Delta t$ with $c_r = 0.18$, the value recommended
+in~\cite{dedner2002}, giving the closed-form update
+\begin{equation}
+\psi \;\leftarrow\; \psi\,\exp\!\bigl(-\Delta t\,c_h / c_r\bigr).
+\label{eq:psi-damp}
+\end{equation}
+The cleaning speed $c_h$ is updated once per step to the current
+global maximum of $|u_n| + c_f$.
 
 \subsection{Time integration}
 
@@ -386,17 +452,17 @@ the global rate sits between~\cite{toro2009}.
 \subsection{Divergence control}
 
 \Cref{fig:divb-hist} shows the time history of $\max|\nabla\cdot B|$
-measured by centered differences on cell-centered $B$ on the
-$128^{2}$ run.  The divergence error grows steeply during the
-transient while shocks form (up to $t \approx 0.15$), then plateaus
-in the range $10^{0}$--$10^{1}$ through the bulk of the simulation,
-with a late-time uptick near $t = 0.5$ as the central current sheet
-tightens.  Absolute values above unity reflect the fact that
-centered differences on cell-centered $B$ are not the natural
-divergence measure for GLM-FVM: what GLM actually damps is a
-particular discrete operator built into the psi evolution, which is
-consistently smaller.  The qualitative solution is
-unaffected~\cite{dedner2002}.
+on the $128^{2}$ run, measured by centered differences on the
+cell-centered $B$.  The error grows during the shock-forming
+transient (up to $t \approx 0.15$), then plateaus near $10^{0}$ to
+$10^{1}$ through most of the run, with a late uptick near $t = 0.5$
+as the current sheet tightens.
+
+Values above unity look alarming but are an artifact of the
+diagnostic.  GLM does not damp this centered-difference operator
+directly; it damps a different discrete divergence built into the
+$\psi$ evolution, which stays consistently smaller.  The qualitative
+solution is unaffected~\cite{dedner2002}.
 
 \begin{figure}[H]
 \centering
