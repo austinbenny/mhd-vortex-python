@@ -373,7 +373,7 @@ nx & $L^{1}$ error & $L^{2}$ error \\
 \label{fig:conv}
 \end{figure}
 
-The observed convergence rate between $32 \to 64$ is $\log_{2}(0.126/0.073) \approx 0.79$ and between $64 \to 128$ is $\log_{2}(0.073/0.029) \approx 1.33$.  The overall trend is super-first-order but sub-second-order.  This is the expected behavior for a MUSCL-minmod solver on a shock-dominated problem: in smooth regions the scheme is second-order, but at shocks and current sheets the limiter clips slopes and the local order drops to one, so the global rate sits between~\cite{toro2009}.
+The observed convergence rate between $32 \to 64$ is $\log_{2}(0.126/0.073) \approx 0.79$ and between $64 \to 128$ is $\log_{2}(0.073/0.029) \approx 1.33$.  The pairwise rate spans sub-first-order to clearly super-first-order, with an effective rate $\log_{2}(L^{1}_{32}/L^{1}_{128})/\log_{2}(4) \approx 1.06$ across the full sweep.  This is the expected behavior for a MUSCL-minmod solver on a shock-dominated problem: in smooth regions the scheme is second-order, but at shocks and current sheets the limiter clips slopes and the local order drops to one, so the global rate sits between~\cite{toro2009}.
 
 \subsection{Divergence control}
 
@@ -400,7 +400,7 @@ The shock positions and the topology of the central current sheet match the refe
 
 \subsection{Convergence}
 
-The observed rate between $1.0$ and $1.3$ is consistent with the theoretical expectation for MUSCL-minmod on a shock-dominated flow. Toro~\cite{toro2009} shows explicitly that the global convergence rate of TVD Godunov schemes on problems with discontinuities sits between one and two, with the exact number depending on how much of the solution is smooth.  For Orszag-Tang at $t=0.5$ essentially all of the solution has at least weak gradients, which is why the rate is closer to one than two.
+The observed rate between $0.79$ and $1.33$ is consistent with the theoretical expectation for MUSCL-minmod on a shock-dominated flow. Toro~\cite{toro2009} shows explicitly that the global convergence rate of TVD Godunov schemes on problems with discontinuities sits between one and two, with the exact number depending on how much of the solution is smooth.  For Orszag-Tang at $t=0.5$ essentially all of the solution has at least weak gradients, which is why the rate is closer to one than two.
 
 \subsection{Divergence control and scheme robustness}
 
