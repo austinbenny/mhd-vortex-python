@@ -70,17 +70,23 @@
 
 \begin{frame}{Ideal MHD in conservative form}
   \[
-  \frac{\partial U}{\partial t} + \frac{\partial F(U)}{\partial x} + \frac{\partial G(U)}{\partial y} = 0,
-  \qquad
-  U = (\rho,\; \rho u,\; \rho v,\; \rho w,\; B_x,\; B_y,\; B_z,\; E)^{T}.
+  \frac{\partial U}{\partial t} + \frac{\partial F(U)}{\partial x} + \frac{\partial G(U)}{\partial y} = 0
   \]
+  with conserved state vector
+  \[
+  U = (\rho,\;\; \rho u,\;\; \rho v,\;\; \rho w,\;\; B_x,\;\; B_y,\;\; B_z,\;\; E)^{T}.
+  \]
+  \medskip
+
   Closure (ideal gas, $\gamma = 5/3$):
   \[
   E = \frac{p}{\gamma - 1} + \tfrac{1}{2}\rho|\mathbf{v}|^{2} + \tfrac{1}{2}|\mathbf{B}|^{2},
   \qquad
   p_T = p + \tfrac{1}{2}|\mathbf{B}|^{2}.
   \]
-  \begin{itemize}
+  \medskip
+
+  \begin{itemize}\small
     \item $\rho$: mass density. $\mathbf{v} = (u,v,w)$: velocity. $\mathbf{B} = (B_x,B_y,B_z)$: magnetic field.
     \item $E$: total energy density (internal $+$ kinetic $+$ magnetic).
     \item $p$: gas pressure. $\tfrac{1}{2}|\mathbf{B}|^{2}$: \emph{magnetic pressure}. $p_T$: total (gas $+$ magnetic).
