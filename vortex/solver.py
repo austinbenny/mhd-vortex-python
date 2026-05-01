@@ -58,15 +58,9 @@ def run(mesh: Mesh, cfg: RunConfig, data_root: str | Path = "data/final") -> dic
     t_wall0 = time.perf_counter()
 
     logger.info(
-        "start problem=%s nx=%d ny=%d tfinal=%.4f cfl=%.3f limiter=%s gamma=%.4f cr=%.3f",
-        cfg.problem,
-        mesh.nx,
-        mesh.ny,
-        cfg.tfinal,
-        cfg.cfl,
-        cfg.limiter,
-        cfg.gamma,
-        cfg.glm_cr,
+        f"start problem={cfg.problem} nx={mesh.nx} ny={mesh.ny} "
+        f"tfinal={cfg.tfinal:.4f} cfl={cfg.cfl:.3f} limiter={cfg.limiter} "
+        f"gamma={cfg.gamma:.4f} cr={cfg.glm_cr:.3f}"
     )
 
     snapshot_times = list(cfg.snapshot_times)
@@ -93,28 +87,24 @@ def run(mesh: Mesh, cfg: RunConfig, data_root: str | Path = "data/final") -> dic
             divb = div_b(U, mesh)
             totals = conserved_totals(U, mesh)
             drift = {k: totals[k] - totals0[k] for k in totals}
+            max_divb = float(np.max(np.abs(divb)))
+            wall = time.perf_counter() - t_wall0
             logger.info(
-                "step=%6d t=%.5f dt=%.3e ch=%.3f max|divB|=%.3e "
-                "dmass=%+.2e denergy=%+.2e wall=%.1fs",
-                step,
-                t,
-                dt,
-                ch,
-                float(np.max(np.abs(divb))),
-                drift["mass"],
-                drift["energy"],
-                time.perf_counter() - t_wall0,
+                f"step={step:6d} t={t:.5f} dt={dt:.3e} ch={ch:.3f} "
+                f"max|divB|={max_divb:.3e} "
+                f"dmass={drift['mass']:+.2e} denergy={drift['energy']:+.2e} "
+                f"wall={wall:.1f}s"
             )
 
         while snapshot_times and t >= snapshot_times[0] - 1e-12:
             ts = snapshot_times.pop(0)
             tag = f"t{ts:.3f}".replace(".", "p")
             save_snapshot(run_dir, tag, t, U, mesh)
-            logger.info("snapshot saved at t=%.4f -> %s", t, tag)
+            logger.info(f"snapshot saved at t={t:.4f} -> {tag}")
 
     save_snapshot(run_dir, "final", t, U, mesh)
     elapsed = time.perf_counter() - t_wall0
-    logger.info("done steps=%d elapsed=%.2fs final_t=%.5f", step, elapsed, t)
+    logger.info(f"done steps={step} elapsed={elapsed:.2f}s final_t={t:.5f}")
     return {
         "run_dir": str(run_dir),
         "steps": step,
