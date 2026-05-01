@@ -84,15 +84,14 @@
 
 \begin{frame}{The divergence constraint}
   \begin{itemize}
-    \item $\nabla\cdot B = 0$ is Gauss's law for magnetism: no monopoles, no field-line sources or sinks.
-    \item Exact MHD preserves this; discrete Godunov updates do not---reconstructed face fields leave a small divergence at every cell center~\cite{balsara1999,powell1999}.
-    \item Why it matters: the Lorentz force splits as
+    \item $\nabla\cdot B = 0$ is Gauss's law: no monopoles $\Rightarrow$ no field-line sources.
+    \item Exact MHD preserves this; discrete updates leave a small divergence at every cell~\cite{balsara1999,powell1999}.
+    \item Why it matters: rewrite the Lorentz force as
       \[
       (\nabla\times B)\times B = (B\cdot\nabla)B - \tfrac{1}{2}\nabla|B|^{2} - (\nabla\cdot B)B.
       \]
-      The last term is zero analytically but becomes a spurious force \emph{parallel to $B$} once $\nabla\cdot B$ drifts---momentum conservation breaks, run blows up.
-    \item Remedies: constrained transport~\cite{balsara1999,londrillo2000}, Powell source terms~\cite{powell1999}, or hyperbolic GLM cleaning~\cite{dedner2002}.
-    \item \textbf{This project uses GLM}: drops into an unstaggered FVM code, adds one scalar $\psi$.
+      The last term vanishes analytically; once $\nabla\cdot B$ drifts, it acts as a spurious force $\parallel B$ and the run blows up.
+    \item Fix here: \textbf{GLM} cleaning~\cite{dedner2002}---one scalar $\psi$, drops into unstaggered FVM. (CT, Powell are alternatives.)
   \end{itemize}
 \end{frame}
 
