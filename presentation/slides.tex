@@ -24,42 +24,42 @@
   \titlepage
 \end{frame}
 
-\iffalse  % long-talk slide: Outline (skipped for 5-min version)
-\begin{frame}{Outline}
-  \tableofcontents
-\end{frame}
-\fi
+% --- COMMENTED OUT: long-talk slide: Outline ---
+% \begin{frame}{Outline}
+%   \tableofcontents
+% \end{frame}
+% --- END ---
 
-\iffalse  % long-talk slide: Acronyms (kept as backup for Q&A)
-\begin{frame}{Acronyms used in this deck}
-  \small
-  \begin{columns}[T]
-    \begin{column}{0.5\textwidth}
-      \begin{itemize}\setlength\itemsep{0.2em}
-        \item \emph{MHD}: magnetohydrodynamics
-        \item \emph{FVM}: finite-volume method
-        \item \emph{IC} / \emph{BC}: initial / boundary conditions
-        \item \emph{CFL}: Courant--Friedrichs--Lewy
-        \item \emph{TVD}: total-variation diminishing
-        \item \emph{MUSCL}: monotonic upstream-centered scheme for conservation laws
-        \item \emph{MC}: monotonized central (limiter)
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \begin{itemize}\setlength\itemsep{0.2em}
-        \item \emph{HLL}: Harten--Lax--van Leer
-        \item \emph{HLLC}: HLL with Contact wave
-        \item \emph{HLLD}: HLL with two Discontinuities (Miyoshi \& Kusano, MHD)
-        \item \emph{GLM}: generalized Lagrange multiplier (divergence cleaning)
-        \item \emph{CT}: constrained transport
-        \item \emph{SSP-RK2}: strong-stability-preserving Runge--Kutta, 2 stages
-        \item \emph{EMF}: electromotive force
-        \item \emph{AMR}: adaptive mesh refinement
-      \end{itemize}
-    \end{column}
-  \end{columns}
-\end{frame}
-\fi
+% --- COMMENTED OUT: long-talk slide: Acronyms (kept as backup for Q&A) ---
+% \begin{frame}{Acronyms used in this deck}
+%   \small
+%   \begin{columns}[T]
+%     \begin{column}{0.5\textwidth}
+%       \begin{itemize}\setlength\itemsep{0.2em}
+%         \item \emph{MHD}: magnetohydrodynamics
+%         \item \emph{FVM}: finite-volume method
+%         \item \emph{IC} / \emph{BC}: initial / boundary conditions
+%         \item \emph{CFL}: Courant--Friedrichs--Lewy
+%         \item \emph{TVD}: total-variation diminishing
+%         \item \emph{MUSCL}: monotonic upstream-centered scheme for conservation laws
+%         \item \emph{MC}: monotonized central (limiter)
+%       \end{itemize}
+%     \end{column}
+%     \begin{column}{0.5\textwidth}
+%       \begin{itemize}\setlength\itemsep{0.2em}
+%         \item \emph{HLL}: Harten--Lax--van Leer
+%         \item \emph{HLLC}: HLL with Contact wave
+%         \item \emph{HLLD}: HLL with two Discontinuities (Miyoshi \& Kusano, MHD)
+%         \item \emph{GLM}: generalized Lagrange multiplier (divergence cleaning)
+%         \item \emph{CT}: constrained transport
+%         \item \emph{SSP-RK2}: strong-stability-preserving Runge--Kutta, 2 stages
+%         \item \emph{EMF}: electromotive force
+%         \item \emph{AMR}: adaptive mesh refinement
+%       \end{itemize}
+%     \end{column}
+%   \end{columns}
+% \end{frame}
+% --- END ---
 
 \section{Introduction and Problem Motivation}
 
@@ -191,25 +191,25 @@
 
 \section{Numerical Model}
 
-\iffalse  % long-talk slides: Computational mesh (text + image)
-\begin{frame}{Computational mesh}
-  \begin{itemize}
-    \item Uniform $128\times 128$ Cartesian grid, $\Delta x = \Delta y = 1/128$.
-    \item Two ghost layers per side (periodic fills for Orszag-Tang).
-    \item ICs (Londrillo \& Del Zanna~\cite{londrillo2000}): $\rho = 1$, $p = 1/\gamma$, $B_0 = 1/\gamma$, and
-      \begin{align*}
-      \mathbf{v}(x,y,0) &= (-\sin 2\pi y,\,\sin 2\pi x,\,0), \\
-      \mathbf{B}(x,y,0) &= B_0\,(-\sin 2\pi y,\,\sin 4\pi x,\,0).
-      \end{align*}
-    \item Left panel: $\mathbf{v}$ overlay. Right panel: $\mathbf{B}$ overlay.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Computational mesh}
-  \centering
-  \includegraphics[width=0.95\textwidth]{mesh_preview.pdf}
-\end{frame}
-\fi
+% --- COMMENTED OUT: long-talk slides: Computational mesh (text + image) ---
+% \begin{frame}{Computational mesh}
+%   \begin{itemize}
+%     \item Uniform $128\times 128$ Cartesian grid, $\Delta x = \Delta y = 1/128$.
+%     \item Two ghost layers per side (periodic fills for Orszag-Tang).
+%     \item ICs (Londrillo \& Del Zanna~\cite{londrillo2000}): $\rho = 1$, $p = 1/\gamma$, $B_0 = 1/\gamma$, and
+%       \begin{align*}
+%       \mathbf{v}(x,y,0) &= (-\sin 2\pi y,\,\sin 2\pi x,\,0), \\
+%       \mathbf{B}(x,y,0) &= B_0\,(-\sin 2\pi y,\,\sin 4\pi x,\,0).
+%       \end{align*}
+%     \item Left panel: $\mathbf{v}$ overlay. Right panel: $\mathbf{B}$ overlay.
+%   \end{itemize}
+% \end{frame}
+%
+% \begin{frame}{Computational mesh}
+%   \centering
+%   \includegraphics[width=0.95\textwidth]{mesh_preview.pdf}
+% \end{frame}
+% --- END ---
 
 \begin{frame}{Scheme at a glance}
   \begin{itemize}
@@ -221,26 +221,26 @@
   \end{itemize}
 \end{frame}
 
-\iffalse  % long-talk slide: HLLD wave pattern (covered by scheme-at-a-glance for short version)
-\begin{frame}{HLLD wave pattern}
-    \begin{itemize}
-      \item Five-wave approximation to the full seven-wave MHD fan~\cite{miyoshi2005}.
-      \item Bounding speeds $S_L, S_R$ from Davis-Einfeldt; entropy speed $S_M$ from jump conditions.
-      \item Two starred + two double-starred states across the rotational Alfven discontinuities.
-      \item Positivity-preserving for physical inputs.
-    \end{itemize}
-
-    \begin{center}
-      \resizebox{0.66\linewidth}{!}{%
-      \begin{tabular}{|c|c|c|c|c|c|}\hline
-        L & $L^{*}$ & $L^{**}$ & $R^{**}$ & $R^{*}$ & R \\\hline
-        \multicolumn{2}{|c|}{$S_L$} & \multicolumn{2}{c|}{$S_L^{*}$} & $S_M$ & $S_R$ \\\hline
-      \end{tabular}} \\
-      \vspace{0.5em}
-      \scriptsize Wave regions across the x-face.
-    \end{center}
-\end{frame}
-\fi
+% --- COMMENTED OUT: long-talk slide: HLLD wave pattern (covered by scheme-at-a-glance for short version) ---
+% \begin{frame}{HLLD wave pattern}
+%     \begin{itemize}
+%       \item Five-wave approximation to the full seven-wave MHD fan~\cite{miyoshi2005}.
+%       \item Bounding speeds $S_L, S_R$ from Davis-Einfeldt; entropy speed $S_M$ from jump conditions.
+%       \item Two starred + two double-starred states across the rotational Alfven discontinuities.
+%       \item Positivity-preserving for physical inputs.
+%     \end{itemize}
+%
+%     \begin{center}
+%       \resizebox{0.66\linewidth}{!}{%
+%       \begin{tabular}{|c|c|c|c|c|c|}\hline
+%         L & $L^{*}$ & $L^{**}$ & $R^{**}$ & $R^{*}$ & R \\\hline
+%         \multicolumn{2}{|c|}{$S_L$} & \multicolumn{2}{c|}{$S_L^{*}$} & $S_M$ & $S_R$ \\\hline
+%       \end{tabular}} \\
+%       \vspace{0.5em}
+%       \scriptsize Wave regions across the x-face.
+%     \end{center}
+% \end{frame}
+% --- END ---
 
 \section{Validation and Results}
 
@@ -261,50 +261,50 @@
   \end{columns}
 \end{frame}
 
-\iffalse  % long-talk slides: pressure plots and time evolution
-\begin{frame}{Thermal and magnetic pressure, t = 0.5}
-  \begin{columns}[c]
-    \begin{column}{0.5\textwidth}
-      \centering
-      \includegraphics[width=\linewidth]{p_final.pdf} \\
-      \scriptsize $p = (\gamma-1)\bigl(E - \tfrac{1}{2}\rho|\mathbf{v}|^{2} - \tfrac{1}{2}|\mathbf{B}|^{2}\bigr)$
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \centering
-      \includegraphics[width=\linewidth]{pmag_final.pdf} \\
-      \scriptsize $p_\text{mag} = \tfrac{1}{2}|\mathbf{B}|^{2}$
-    \end{column}
-  \end{columns}
-  \vspace{0.3em}
-  \begin{itemize}\scriptsize
-    \item Thermal pressure tracks density with extra shock heating near the current sheet.
-    \item Magnetic pressure peaks at flux pile-up in the four current-sheet arms.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Formation of the current sheet}
-  \begin{columns}[c]
-    \begin{column}{0.33\textwidth}
-      \centering
-      \includegraphics[width=\linewidth]{rho_t0p100.pdf}\\ \scriptsize $\rho(x,y,\,t=0.1)$
-    \end{column}
-    \begin{column}{0.33\textwidth}
-      \centering
-      \includegraphics[width=\linewidth]{rho_t0p300.pdf}\\ \scriptsize $\rho(x,y,\,t=0.3)$
-    \end{column}
-    \begin{column}{0.33\textwidth}
-      \centering
-      \includegraphics[width=\linewidth]{rho_final.pdf}\\ \scriptsize $\rho(x,y,\,t=0.5)$
-    \end{column}
-  \end{columns}
-  \vspace{0.3em}
-  \begin{itemize}\scriptsize
-    \item $t = 0.1$: still smooth, the vortices are just forming.
-    \item $t = 0.3$: diagonal shocks have formed; bow-tie compression starts.
-    \item $t = 0.5$: fully-developed current sheet and bounding shocks.
-  \end{itemize}
-\end{frame}
-\fi
+% --- COMMENTED OUT: long-talk slides: pressure plots and time evolution ---
+% \begin{frame}{Thermal and magnetic pressure, t = 0.5}
+%   \begin{columns}[c]
+%     \begin{column}{0.5\textwidth}
+%       \centering
+%       \includegraphics[width=\linewidth]{p_final.pdf} \\
+%       \scriptsize $p = (\gamma-1)\bigl(E - \tfrac{1}{2}\rho|\mathbf{v}|^{2} - \tfrac{1}{2}|\mathbf{B}|^{2}\bigr)$
+%     \end{column}
+%     \begin{column}{0.5\textwidth}
+%       \centering
+%       \includegraphics[width=\linewidth]{pmag_final.pdf} \\
+%       \scriptsize $p_\text{mag} = \tfrac{1}{2}|\mathbf{B}|^{2}$
+%     \end{column}
+%   \end{columns}
+%   \vspace{0.3em}
+%   \begin{itemize}\scriptsize
+%     \item Thermal pressure tracks density with extra shock heating near the current sheet.
+%     \item Magnetic pressure peaks at flux pile-up in the four current-sheet arms.
+%   \end{itemize}
+% \end{frame}
+%
+% \begin{frame}{Formation of the current sheet}
+%   \begin{columns}[c]
+%     \begin{column}{0.33\textwidth}
+%       \centering
+%       \includegraphics[width=\linewidth]{rho_t0p100.pdf}\\ \scriptsize $\rho(x,y,\,t=0.1)$
+%     \end{column}
+%     \begin{column}{0.33\textwidth}
+%       \centering
+%       \includegraphics[width=\linewidth]{rho_t0p300.pdf}\\ \scriptsize $\rho(x,y,\,t=0.3)$
+%     \end{column}
+%     \begin{column}{0.33\textwidth}
+%       \centering
+%       \includegraphics[width=\linewidth]{rho_final.pdf}\\ \scriptsize $\rho(x,y,\,t=0.5)$
+%     \end{column}
+%   \end{columns}
+%   \vspace{0.3em}
+%   \begin{itemize}\scriptsize
+%     \item $t = 0.1$: still smooth, the vortices are just forming.
+%     \item $t = 0.3$: diagonal shocks have formed; bow-tie compression starts.
+%     \item $t = 0.5$: fully-developed current sheet and bounding shocks.
+%   \end{itemize}
+% \end{frame}
+% --- END ---
 
 \begin{frame}{Convergence in density}
   \begin{columns}[c]
@@ -350,34 +350,34 @@
 
 \section{Discussion of Results}
 
-\iffalse  % long-talk slides: discussion (accuracy, convergence rate, limitations)
-\begin{frame}{Accuracy vs limiter choice}
-  \begin{itemize}
-    \item At $128^{2}$ here: $\rho_{\min}\approx 0.47$, $\rho_{\max}\approx 2.16$.
-    \item Athena++ with MC at the same resolution: $\rho_{\min}\sim 0.1$, $\rho_{\max}\sim 3.5$~\cite{athena_orszag_tang}.
-    \item Gap is the limiter: minmod is the most diffusive TVD choice and smears current sheets~\cite{toro2009}.
-    \item MC or van Leer would close it---but cost robustness in low-beta cells.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Why between first and second order}
-  \begin{itemize}
-    \item MUSCL is second-order in smooth regions~\cite{toro2009}.
-    \item TVD limiters drop to first order at extrema and at shocks.
-    \item Orszag-Tang at $t = 0.5$ is shock-dominated $\Rightarrow$ global rate between 1 and 2.
-    \item Observed: $\approx 0.8$ coarse (shocks dominate), $\approx 1.3$ fine (smooth regions start to dominate).
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Limitations}
-  \begin{itemize}
-    \item Vectorized NumPy: $128^{2}$ in $\sim 7$\,s; $256^{2}$ is the practical ceiling on a laptop.
-    \item No constrained-transport option---GLM is simpler but less strict on $\nabla\cdot B$~\cite{balsara1999}.
-    \item 2D Cartesian; no AMR.
-    \item Linear reconstruction (MUSCL); no WENO, no higher-order time integration.
-  \end{itemize}
-\end{frame}
-\fi
+% --- COMMENTED OUT: long-talk slides: discussion (accuracy, convergence rate, limitations) ---
+% \begin{frame}{Accuracy vs limiter choice}
+%   \begin{itemize}
+%     \item At $128^{2}$ here: $\rho_{\min}\approx 0.47$, $\rho_{\max}\approx 2.16$.
+%     \item Athena++ with MC at the same resolution: $\rho_{\min}\sim 0.1$, $\rho_{\max}\sim 3.5$~\cite{athena_orszag_tang}.
+%     \item Gap is the limiter: minmod is the most diffusive TVD choice and smears current sheets~\cite{toro2009}.
+%     \item MC or van Leer would close it---but cost robustness in low-beta cells.
+%   \end{itemize}
+% \end{frame}
+%
+% \begin{frame}{Why between first and second order}
+%   \begin{itemize}
+%     \item MUSCL is second-order in smooth regions~\cite{toro2009}.
+%     \item TVD limiters drop to first order at extrema and at shocks.
+%     \item Orszag-Tang at $t = 0.5$ is shock-dominated $\Rightarrow$ global rate between 1 and 2.
+%     \item Observed: $\approx 0.8$ coarse (shocks dominate), $\approx 1.3$ fine (smooth regions start to dominate).
+%   \end{itemize}
+% \end{frame}
+%
+% \begin{frame}{Limitations}
+%   \begin{itemize}
+%     \item Vectorized NumPy: $128^{2}$ in $\sim 7$\,s; $256^{2}$ is the practical ceiling on a laptop.
+%     \item No constrained-transport option---GLM is simpler but less strict on $\nabla\cdot B$~\cite{balsara1999}.
+%     \item 2D Cartesian; no AMR.
+%     \item Linear reconstruction (MUSCL); no WENO, no higher-order time integration.
+%   \end{itemize}
+% \end{frame}
+% --- END ---
 
 \section{Conclusions}
 
