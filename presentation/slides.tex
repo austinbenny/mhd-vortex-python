@@ -32,19 +32,19 @@
 
 \begin{frame}{Why MHD}
   \begin{itemize}
-    \item A conducting fluid in motion is a distributed electric current; the \emph{Lorentz force} $\mathbf{J}\times\mathbf{B}$ is a body force on every cell~\cite{chen2016,freidberg2014}.
-    \item ``Frozen-in flux'': in the ideal limit, field lines move with the fluid. Fluid and field are tied together everywhere.
-    \item Valid when plasma is collisional and magnetic Reynolds number is large: solar wind, tokamaks, astrophysical jets, magnetospheres.
+    \item Conducting fluid in motion = distributed current; \emph{Lorentz force} $\mathbf{J}\times\mathbf{B}$ acts on every cell~\cite{chen2016,freidberg2014}.
+    \item \emph{Frozen-in flux}: in the ideal limit, field lines move with the fluid.
+    \item Applies wherever plasma is collisional and magnetic Reynolds is large: solar wind, tokamaks, astrophysical jets, magnetospheres.
     \item New physics vs Euler:
       \begin{itemize}\small
-        \item \emph{Alfven} waves---transverse, like waves on a string with magnetic tension as the restoring force.
-        \item \emph{Fast/slow magnetosonic} waves---sound waves modified by magnetic pressure.
+        \item \emph{Alfven} waves---transverse, like waves on a tense string.
+        \item \emph{Fast/slow magnetosonic}---sound waves modified by magnetic pressure.
         \item Maxwell stresses $-B_iB_j$ in the momentum flux.
-        \item The no-monopoles constraint $\nabla\cdot B = 0$.
+        \item No-monopoles constraint $\nabla\cdot B = 0$.
       \end{itemize}
   \end{itemize}
   \vspace{0.3em}
-  \textbf{Project goal.} Build a 2D ideal MHD finite-volume solver in Python and validate it on the Orszag-Tang vortex.
+  \textbf{Project goal}: 2D ideal MHD finite-volume solver in Python, validated on Orszag-Tang.
 \end{frame}
 
 \begin{frame}{Why Orszag-Tang}
@@ -72,23 +72,27 @@
   \quad
   U = (\rho,\; \rho\mathbf{v},\; \mathbf{B},\; E)^{T}
   \end{equation*}
-  with total energy $E = p/(\gamma-1) + \tfrac{1}{2}\rho|\mathbf{v}|^{2} + \tfrac{1}{2}|\mathbf{B}|^{2}$ and total pressure $p_T = p + \tfrac{1}{2}|\mathbf{B}|^{2}$~\cite{powell1999}.
+  with $E = p/(\gamma-1) + \tfrac{1}{2}\rho|\mathbf{v}|^{2} + \tfrac{1}{2}|\mathbf{B}|^{2}$, $p_T = p + \tfrac{1}{2}|\mathbf{B}|^{2}$~\cite{powell1999}.
   \begin{itemize}
-    \item Eight conserved variables; all three velocity and field components carried even in 2D.
-    \item New vs Euler: \emph{magnetic pressure} $\tfrac{1}{2}|B|^{2}$ inside $p_T$, \emph{magnetic tension} along field lines via $-B_iB_j$, and \emph{magnetic energy} $\tfrac{1}{2}|B|^{2}$ in $E$.
-    \item Induction-equation flux $u B_y - v B_x$ is the $z$-component of the motional electric field $-\mathbf{v}\times\mathbf{B}$: this is what drags field lines along with the flow.
-    \item Seven-wave fan: two fast magnetosonic, two Alfven, two slow magnetosonic, one entropy~\cite{brio1988,miyoshi2005}.
+    \item 8 conserved variables; all 3 velocity + field components, even in 2D.
+    \item New vs Euler: magnetic pressure $\tfrac{1}{2}|B|^{2}$ in $p_T$, magnetic tension $-B_iB_j$, magnetic energy in $E$.
+    \item Induction-equation flux $u B_y - v B_x$ is the motional EMF $-\mathbf{v}\times\mathbf{B}$: drags field lines with the flow.
+    \item Seven-wave fan: 2 fast, 2 Alfven, 2 slow, 1 entropy~\cite{brio1988,miyoshi2005}.
     \item Ideal-gas closure, $\gamma = 5/3$.
   \end{itemize}
 \end{frame}
 
 \begin{frame}{The divergence constraint}
   \begin{itemize}
-    \item $\nabla\cdot B = 0$ is Gauss's law for magnetism: no magnetic monopoles, so field lines have no sources or sinks.
-    \item Exact ideal MHD preserves this analytically; piecewise-constant Godunov updates do not---reconstructed interface fields produce a small but nonzero divergence at every cell center~\cite{balsara1999,powell1999}.
-    \item Consequence is direct: rewriting $(\nabla\times B)\times B = (B\cdot\nabla)B - \tfrac{1}{2}\nabla|B|^{2} - (\nabla\cdot B)B$, the last term becomes a spurious force \emph{parallel to $B$}, breaks momentum conservation, and eventually blows the run up.
+    \item $\nabla\cdot B = 0$ is Gauss's law for magnetism: no monopoles, no field-line sources or sinks.
+    \item Exact MHD preserves this; discrete Godunov updates do not---reconstructed face fields leave a small divergence at every cell center~\cite{balsara1999,powell1999}.
+    \item Why it matters: the Lorentz force splits as
+      \[
+      (\nabla\times B)\times B = (B\cdot\nabla)B - \tfrac{1}{2}\nabla|B|^{2} - (\nabla\cdot B)B.
+      \]
+      The last term is zero analytically but becomes a spurious force \emph{parallel to $B$} once $\nabla\cdot B$ drifts---momentum conservation breaks, run blows up.
     \item Remedies: constrained transport~\cite{balsara1999,londrillo2000}, Powell source terms~\cite{powell1999}, or hyperbolic GLM cleaning~\cite{dedner2002}.
-    \item \textbf{This project uses GLM}: simpler to drop into an unstaggered FVM code, only adds one scalar $\psi$.
+    \item \textbf{This project uses GLM}: drops into an unstaggered FVM code, adds one scalar $\psi$.
   \end{itemize}
 \end{frame}
 
@@ -107,36 +111,31 @@
 
 \begin{frame}{Scheme at a glance}
   \begin{itemize}
-    \item 2D structured Cartesian grid, cell-centered state, two ghost layers~\cite{versteeg2007,moukalled2016}.
-    \item MUSCL linear reconstruction on primitives with minmod limiter (MC, van Leer optional)~\cite{toro2009}.
-    \item HLLD Riemann solver~\cite{miyoshi2005} at every interface; degenerates to HLLC for B = 0.
-    \item GLM psi/Bx coupling handled inside the Riemann solver; parabolic damping applied per RK stage~\cite{dedner2002}.
-    \item SSP-RK2 time integration~\cite{shu1988}, CFL = 0.3.
+    \item Cell-centered Cartesian grid, two ghost layers~\cite{versteeg2007,moukalled2016}.
+    \item MUSCL on primitives with minmod (MC, van Leer optional)~\cite{toro2009}.
+    \item HLLD Riemann solver~\cite{miyoshi2005}; reduces to HLLC for $B = 0$.
+    \item GLM $\psi$/$B_x$ coupling baked into the Riemann solver; parabolic damping per RK stage~\cite{dedner2002}.
+    \item SSP-RK2 time integration~\cite{shu1988}, CFL $= 0.3$.
   \end{itemize}
 \end{frame}
 
 \begin{frame}{HLLD wave pattern}
-  \begin{columns}[T]
-    \begin{column}{0.55\textwidth}
-      \begin{itemize}
-        \item Five-wave approximation to the full seven-wave MHD fan~\cite{miyoshi2005}.
-        \item Bounding speeds $S_L, S_R$: Davis-Einfeldt.
-        \item Entropy speed $S_M$ from jump conditions at the contact wave.
-        \item Two starred states and two double-starred states (across the rotational Alfven discontinuities).
-        \item Positivity-preserving for physical inputs.
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.45\textwidth}
-      \centering
-      \resizebox{\linewidth}{!}{%
+    \begin{itemize}
+      \item Five-wave approximation to the full seven-wave MHD fan~\cite{miyoshi2005}.
+      \item Bounding speeds $S_L, S_R$ from Davis-Einfeldt; entropy speed $S_M$ from jump conditions.
+      \item Two starred + two double-starred states across the rotational Alfven discontinuities.
+      \item Positivity-preserving for physical inputs.
+    \end{itemize}
+
+    \begin{center}
+      \resizebox{0.66\linewidth}{!}{%
       \begin{tabular}{|c|c|c|c|c|c|}\hline
         L & $L^{*}$ & $L^{**}$ & $R^{**}$ & $R^{*}$ & R \\\hline
         \multicolumn{2}{|c|}{$S_L$} & \multicolumn{2}{c|}{$S_L^{*}$} & $S_M$ & $S_R$ \\\hline
-      \end{tabular}}
+      \end{tabular}} \\
       \vspace{0.5em}
       \scriptsize Wave regions across the x-face.
-    \end{column}
-  \end{columns}
+    \end{center}
 \end{frame}
 
 \section{Validation and Results}
@@ -231,8 +230,8 @@
     \begin{column}{0.45\textwidth}
       \begin{itemize}
         \item GLM~\cite{dedner2002} bounds $\max|\nabla\cdot B|$ once shocks form.
-        \item Cell-centered centered differences are a pessimistic diagnostic; the GLM-natural measure is smaller.
-        \item Mass, momentum, energy conserved to machine precision ($\sim 10^{-16}$ drift per step) -- see \texttt{run.log}.
+        \item Centered-difference $|\nabla\cdot B|$ is pessimistic; GLM-natural measure is smaller.
+        \item Mass, momentum, energy conserved to machine precision ($\sim 10^{-16}$ per step, see \texttt{run.log}).
       \end{itemize}
     \end{column}
   \end{columns}
@@ -242,28 +241,28 @@
 
 \begin{frame}{Accuracy vs limiter choice}
   \begin{itemize}
-    \item Observed density extrema at $128^{2}$: $\rho_{\min}\approx 0.47$, $\rho_{\max}\approx 2.16$.
-    \item Athena++~\cite{athena_orszag_tang} with MC limiter at the same resolution: tighter extrema ($\rho_{\min}\sim 0.1$, $\rho_{\max}\sim 3.5$).
-    \item Gap is almost entirely the limiter: minmod is the most diffusive TVD limiter and smears current sheets fastest~\cite{toro2009}.
-    \item MC or van Leer would close the gap but at a cost in robustness for low-beta cells.
+    \item At $128^{2}$ here: $\rho_{\min}\approx 0.47$, $\rho_{\max}\approx 2.16$.
+    \item Athena++ with MC at the same resolution: $\rho_{\min}\sim 0.1$, $\rho_{\max}\sim 3.5$~\cite{athena_orszag_tang}.
+    \item Gap is the limiter: minmod is the most diffusive TVD choice and smears current sheets~\cite{toro2009}.
+    \item MC or van Leer would close it---but cost robustness in low-beta cells.
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Why between first and second order}
   \begin{itemize}
     \item MUSCL is second-order in smooth regions~\cite{toro2009}.
-    \item Any TVD limiter drops to first order at local extrema and at shocks.
-    \item Orszag-Tang at t = 0.5 is shock-dominated, so the global rate sits between 1 and 2.
-    \item Observed: $\approx 0.8$ at coarse resolutions (shock-dominated), $\approx 1.3$ at fine (smooth regions start to dominate).
+    \item TVD limiters drop to first order at extrema and at shocks.
+    \item Orszag-Tang at $t = 0.5$ is shock-dominated $\Rightarrow$ global rate between 1 and 2.
+    \item Observed: $\approx 0.8$ coarse (shocks dominate), $\approx 1.3$ fine (smooth regions start to dominate).
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Limitations}
   \begin{itemize}
-    \item Vectorized NumPy: $128^{2}$ runs in $\sim 7$\,s; $256^{2}$ is the practical ceiling on a laptop.
-    \item No constrained-transport option -- GLM is simpler but less strict about $\nabla\cdot B$~\cite{balsara1999}.
-    \item 2D Cartesian only; no adaptive refinement.
-    \item Reconstruction is linear (MUSCL) -- no WENO, no higher-order time integration.
+    \item Vectorized NumPy: $128^{2}$ in $\sim 7$\,s; $256^{2}$ is the practical ceiling on a laptop.
+    \item No constrained-transport option---GLM is simpler but less strict on $\nabla\cdot B$~\cite{balsara1999}.
+    \item 2D Cartesian; no AMR.
+    \item Linear reconstruction (MUSCL); no WENO, no higher-order time integration.
   \end{itemize}
 \end{frame}
 
@@ -271,13 +270,13 @@
 
 \begin{frame}{Conclusions}
   \begin{itemize}
-    \item Built a 2D ideal MHD solver from scratch: Godunov FVM, MUSCL-minmod, HLLD~\cite{miyoshi2005}, GLM~\cite{dedner2002}, SSP-RK2~\cite{shu1988}.
-    \item Orszag-Tang at $128^{2}$ reproduces the canonical density/pressure pattern at $t = 0.5$~\cite{londrillo2000,athena_orszag_tang}.
-    \item Mass, momentum, energy conserved to machine precision; $\max|\nabla\cdot B|$ bounded by GLM.
-    \item Convergence rate between 1 and 2, consistent with MUSCL-minmod on a shock-dominated flow.
+    \item 2D ideal MHD solver from scratch: Godunov FVM, MUSCL-minmod, HLLD~\cite{miyoshi2005}, GLM~\cite{dedner2002}, SSP-RK2~\cite{shu1988}.
+    \item Orszag-Tang at $128^{2}$ reproduces the canonical $t = 0.5$ density/pressure pattern~\cite{londrillo2000,athena_orszag_tang}.
+    \item Mass, momentum, energy conserved to machine precision; GLM bounds $\max|\nabla\cdot B|$.
+    \item Convergence rate between 1 and 2, as expected for MUSCL-minmod on shock-dominated flow.
   \end{itemize}
   \vspace{0.5em}
-  \textbf{Natural extensions.} Constrained transport; resistive MHD; 3D; AMR; Numba/JAX compilation.
+  \textbf{Natural extensions}: constrained transport, resistive MHD, 3D, AMR, Numba/JAX.
 \end{frame}
 
 \begin{frame}[allowframebreaks]{References}
