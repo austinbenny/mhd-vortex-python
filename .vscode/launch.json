@@ -1,15 +1,104 @@
 {
     "version": "0.2.0",
+    "inputs": [
+        {
+            "id": "configFile",
+            "type": "pickString",
+            "description": "Pick a problem config",
+            "options": [
+                "data/raw/orszag_tang_32.yaml",
+                "data/raw/orszag_tang_64.yaml",
+                "data/raw/orszag_tang_128.yaml",
+                "data/raw/orszag_tang_256.yaml"
+            ],
+            "default": "data/raw/orszag_tang_32.yaml"
+        },
+        {
+            "id": "runDir",
+            "type": "pickString",
+            "description": "Pick a run directory to post-process",
+            "options": [
+                "data/final/orszag_tang_32",
+                "data/final/orszag_tang_64",
+                "data/final/orszag_tang_128",
+                "data/final/orszag_tang_256"
+            ],
+            "default": "data/final/orszag_tang_32"
+        }
+    ],
     "configurations": [
         {
-            "name": "Python: Example Script",
+            "name": "Solve: Orszag-Tang (pick config)",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/hw/example.py",
+            "module": "scripts.run_orszag_tang",
+            "args": ["${input:configFile}"],
             "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/.venv/bin/python",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
-            }
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "Solve: Orszag-Tang 128x128",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.run_orszag_tang",
+            "args": ["data/raw/orszag_tang_128.yaml"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "Post-process: Orszag-Tang (pick run)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.plot_orszag_tang",
+            "args": ["${input:runDir}"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "Mesh preview (pick config)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.plot_mesh",
+            "args": [
+                "${input:configFile}",
+                "--out",
+                "data/final/mesh_preview/figs/mesh_preview.pdf"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "Convergence study",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.convergence_study",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": true
         }
     ]
 }
