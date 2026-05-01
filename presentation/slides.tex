@@ -89,45 +89,51 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Flux vectors $F(U)$ and $G(U)$}
-  \begin{columns}[T]
-    \begin{column}{0.5\textwidth}
-      \footnotesize
-      \[
-      F(U) = \begin{pmatrix}
-      \rho u \\
-      \rho u^{2} + p_T - B_x^{2} \\
-      \rho u v - B_x B_y \\
-      \rho u w - B_x B_z \\
-      0 \\
-      u B_y - v B_x \\
-      u B_z - w B_x \\
-      (E + p_T)\,u - B_x(\mathbf{v}\!\cdot\!\mathbf{B})
-      \end{pmatrix}
-      \]
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \footnotesize
-      \[
-      G(U) = \begin{pmatrix}
-      \rho v \\
-      \rho v u - B_y B_x \\
-      \rho v^{2} + p_T - B_y^{2} \\
-      \rho v w - B_y B_z \\
-      v B_x - u B_y \\
-      0 \\
-      v B_z - w B_y \\
-      (E + p_T)\,v - B_y(\mathbf{v}\!\cdot\!\mathbf{B})
-      \end{pmatrix}
-      \]
-    \end{column}
-  \end{columns}
-  \vspace{0.2em}
+\begin{frame}{$x$-direction flux $F(U)$}
+  \centering
+  \footnotesize
+  \begin{tabular}{c@{\quad}l@{\qquad}l}
+  \toprule
+  Row & $F(U)$ component & Physical meaning \\
+  \midrule
+  1 & $\rho u$                                       & mass flux (Euler) \\
+  2 & $\rho u^{2} + p_T - B_x^{2}$                   & $x$-momentum: total pressure $p_T$, tension $-B_x^{2}$ \\
+  3 & $\rho u v - B_x B_y$                           & Maxwell shear stress \\
+  4 & $\rho u w - B_x B_z$                           & Maxwell shear stress \\
+  5 & $0$                                            & $B_x$ self-flux $= 0$ in ideal MHD; GLM fills it \\
+  6 & $u B_y - v B_x$                                & induction-equation flux for $B_y$ \\
+  7 & $u B_z - w B_x$                                & induction-equation flux for $B_z$ \\
+  8 & $(E + p_T)\,u - B_x(\mathbf{v}\!\cdot\!\mathbf{B})$ & enthalpy carry $+$ Poynting flux \\
+  \bottomrule
+  \end{tabular}
+  \vspace{0.6em}
   \begin{itemize}\scriptsize
-    \item Row 1: \emph{mass flux} $\rho u,\;\rho v$ (Euler).
-    \item Rows 2--4: \emph{momentum flux}. Diagonal carries total pressure $p_T$ minus a tension $-B_n^{2}$; off-diagonal $-B_iB_j$ are the \emph{Maxwell stresses}.
-    \item Rows 5--7: \emph{induction equation}. The flux $uB_y - vB_x$ is the $z$-component of the motional EMF $-\mathbf{v}\times\mathbf{B}$---this drags field lines with the flow. The diagonal $B_n$-flux row is $0$; GLM (next slide) fills it in.
-    \item Row 8: \emph{total-energy flux}. The $-B_n(\mathbf{v}\!\cdot\!\mathbf{B})$ piece is the \emph{Poynting flux}---transports magnetic energy with the fluid.
+    \item Rows 6--7 are components of the motional EMF $\mathbf{v}\!\times\!\mathbf{B}$ that drag field lines with the fluid (frozen-in flux).
+    \item Row 8 carries Euler enthalpy $(E + p_T)u$ \emph{plus} the Poynting flux $-B_x(\mathbf{v}\!\cdot\!\mathbf{B})$, which transports magnetic energy with the fluid.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{$y$-direction flux $G(U)$}
+  \centering
+  \footnotesize
+  \begin{tabular}{c@{\quad}l@{\qquad}l}
+  \toprule
+  Row & $G(U)$ component & Physical meaning \\
+  \midrule
+  1 & $\rho v$                                       & mass flux (Euler) \\
+  2 & $\rho v u - B_y B_x$                           & Maxwell shear stress \\
+  3 & $\rho v^{2} + p_T - B_y^{2}$                   & $y$-momentum: total pressure $p_T$, tension $-B_y^{2}$ \\
+  4 & $\rho v w - B_y B_z$                           & Maxwell shear stress \\
+  5 & $v B_x - u B_y$                                & induction-equation flux for $B_x$ \\
+  6 & $0$                                            & $B_y$ self-flux $= 0$ in ideal MHD; GLM fills it \\
+  7 & $v B_z - w B_y$                                & induction-equation flux for $B_z$ \\
+  8 & $(E + p_T)\,v - B_y(\mathbf{v}\!\cdot\!\mathbf{B})$ & enthalpy carry $+$ Poynting flux \\
+  \bottomrule
+  \end{tabular}
+  \vspace{0.6em}
+  \begin{itemize}\scriptsize
+    \item Same structure as $F(U)$ with $(u, B_x)$ and $(v, B_y)$ swapped.
+    \item Implementation reuses the $x$-direction Riemann solver after the coordinate swap; halves the code surface.
   \end{itemize}
 \end{frame}
 
@@ -139,7 +145,7 @@
       \[
       (\nabla\times B)\times B = (B\cdot\nabla)B - \tfrac{1}{2}\nabla|B|^{2} - (\nabla\cdot B)B.
       \]
-      The last term vanishes analytically; once $\nabla\cdot B$ drifts, it acts as a spurious force $\parallel B$ and the run blows up.
+      The last term vanishes analytically; once $\nabla\cdot B$ drifts, it acts as a spurious force parallel to $B$ and the run blows up.
     \item Fix here: \textbf{GLM} cleaning~\cite{dedner2002}---one scalar $\psi$, drops into unstaggered FVM. (CT, Powell are alternatives.)
   \end{itemize}
 \end{frame}
