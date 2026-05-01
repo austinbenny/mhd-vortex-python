@@ -235,7 +235,57 @@ with $L(U) = -(\partial_x F + \partial_y G)$ evaluated on the interior cells.  T
 \end{equation}
 Ghost cells (two layers on each side, each direction) carry the boundary conditions.  For Orszag-Tang all four boundaries are periodic; outflow and reflective kinds are implemented but not exercised in this report.
 
-\section{Validation}
+\subsection{Algorithm and implementation}
+
+The solver loop, shown in pseudocode form in \Cref{alg:solver}, mirrors the structure of \texttt{vortex/solver.py} and \texttt{vortex/integrator.py}.  At the top level it is a textbook explicit time loop: each pass computes a CFL-limited $\Delta t$, advances the conserved state with a two-stage SSP-RK2 update, applies the GLM parabolic damping, and writes a snapshot at the requested checkpoints.  The right-hand side $L(U)$ used by both RK stages is itself a small pipeline: fill ghost cells, convert to primitive variables, reconstruct left/right states at every face with the slope-limited MUSCL formula, evaluate the HLLD numerical flux at each face, and take the discrete divergence of those fluxes.
+
+\begin{algorithm}[H]
+\caption{Top-level 2D ideal MHD solver.}
+\label{alg:solver}
+\begin{algorithmic}[1]
+\Procedure{Run}{cfg}
+  \State Build mesh; allocate $U$ with two ghost layers per side
+  \State Initialize $U$ from the problem's initial conditions
+  \State $t \gets 0$,\; $\text{step} \gets 0$
+  \State Save snapshot at $t = 0$
+  \While{$t < t_\text{final}$}
+    \State $c_h \gets$ \Call{MaxFastSpeed}{$U$}
+    \State $\Delta t \gets$ \Call{ComputeDt}{$U$, $c_h$, CFL} \Comment{Eq.~\eqref{eq:cfl-app}}
+    \State $\Delta t \gets \min(\Delta t,\;\text{next checkpoint} - t)$
+    \State $U^{*} \gets U + \Delta t\,L(U)$ \Comment{RK stage 1}
+    \State $U \gets \tfrac{1}{2}\bigl(U + U^{*} + \Delta t\,L(U^{*})\bigr)$ \Comment{RK stage 2}
+    \State \Call{DampPsi}{$U$, $\Delta t$, $c_h$, $c_r$} \Comment{Eq.~\eqref{eq:psi-damp-app}}
+    \State $t \gets t + \Delta t$,\; $\text{step} \gets \text{step}+1$
+    \If{$t$ has crossed a checkpoint}
+      \State Save snapshot
+    \EndIf
+  \EndWhile
+  \State Save final snapshot
+\EndProcedure
+\Statex
+\Function{$L$}{$U$} \Comment{$L(U) = -(\partial_x F + \partial_y G)$, eq.~\eqref{eq:semi-discrete-app}}
+  \State \Call{ApplyBC}{$U$} \Comment{fill the two ghost layers}
+  \State $Q \gets$ \Call{ConsToPrim}{$U$}
+  \State $(Q_L^x, Q_R^x) \gets$ \Call{ReconstructX}{$Q$, limiter} \Comment{Eqs.~\eqref{eq:muscl-app}--\eqref{eq:limiters-app}}
+  \State $(Q_L^y, Q_R^y) \gets$ \Call{ReconstructY}{$Q$, limiter}
+  \State $F \gets$ \Call{HLLD\textsubscript{x}}{$Q_L^x, Q_R^x, c_h$} \Comment{Eq.~\eqref{eq:hlld-select-app}}
+  \State $G \gets$ \Call{HLLD\textsubscript{y}}{$Q_L^y, Q_R^y, c_h$}
+  \State \Return $-\bigl(F_{i+1/2,j} - F_{i-1/2,j}\bigr)/\Delta x \;-\; \bigl(G_{i,j+1/2} - G_{i,j-1/2}\bigr)/\Delta y$
+\EndFunction
+\Statex
+\Function{HLLD\textsubscript{x}}{$Q_L, Q_R, c_h$}
+  \State $U_L \gets$ \Call{PrimToCons}{$Q_L$};\quad $U_R \gets$ \Call{PrimToCons}{$Q_R$}
+  \State Compute fast speeds $c_{f,L}, c_{f,R}$ and bounds $S_L, S_R$ (Davis--Einfeldt)
+  \State $S_M \gets$ HLL-average normal velocity (entropy-wave speed)
+  \State Build star states $U_L^{*}, U_R^{*}$; double-star states $U_L^{**}, U_R^{**}$
+  \State Pick the flux from the wave region containing $0$ \Comment{Eq.~\eqref{eq:hlld-select-app}}
+  \State Overwrite $F[B_x]$ and $F[\psi]$ with the GLM Riemann solution \Comment{Eqs.~\eqref{eq:glm-bn-app}--\eqref{eq:glm-psi-app}}
+  \State \Return $F$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+The y-direction Riemann solve is implemented by swapping the $x$/$y$ momentum and magnetic-field components, calling the x-routine, then swapping back---the same trick used in many production MHD codes.
 
 \subsection{Qualitative comparison on the Orszag-Tang vortex}
 
@@ -362,6 +412,115 @@ A 2D ideal MHD finite volume solver was implemented from scratch in Python.  The
 Natural extensions are: a constrained-transport alternative to GLM for strict divergence-free evolution; resistive MHD; 3D; AMR; and a Numba- or JAX-compiled core to lift the practical resolution ceiling.
 
 \appendix
+
+\section{Summary of discretized equations}
+\label{app:discrete}
+
+This appendix collects every discrete equation the solver actually computes, in the order they appear in one time step.  Equation numbers are referenced from the algorithm pseudocode in \Cref{alg:solver}.
+
+\subsection{CFL time-step}
+
+The step is set by the largest characteristic speed in any direction, including the GLM cleaning speed:
+\begin{equation}
+\Delta t \;=\; \mathrm{CFL}\,\cdot\,
+  \frac{\min(\Delta x,\,\Delta y)}
+       {\max\!\bigl(|u|+c_f,\;|v|+c_f,\;c_h\bigr)},
+\qquad \mathrm{CFL}=0.3,
+\label{eq:cfl-app}
+\end{equation}
+where $c_f$ is the fast magnetosonic speed in the relevant direction and $c_h$ is the GLM cleaning speed.
+
+\subsection{Semi-discrete cell update}
+
+For each interior cell $(i,j)$,
+\begin{equation}
+\frac{dU_{i,j}}{dt}
+  \;=\; -\frac{F_{i+1/2,j} - F_{i-1/2,j}}{\Delta x}
+        \;-\;\frac{G_{i,j+1/2} - G_{i,j-1/2}}{\Delta y}.
+\label{eq:semi-discrete-app}
+\end{equation}
+
+\subsection{MUSCL reconstruction at faces}
+
+For each primitive $Q$ define the one-sided differences $\Delta_L = Q_i - Q_{i-1}$ and $\Delta_R = Q_{i+1} - Q_i$.  The limited slope $\sigma_i$ is built from $(\Delta_L,\Delta_R)$ by one of the limiter formulas below.  The two reconstructed states at $x_{i+1/2}$ are
+\begin{equation}
+Q_{L,\,i+1/2} \;=\; Q_i \,+\, \tfrac{1}{2}\sigma_i,
+\qquad
+Q_{R,\,i+1/2} \;=\; Q_{i+1} \,-\, \tfrac{1}{2}\sigma_{i+1}.
+\label{eq:muscl-app}
+\end{equation}
+The y-direction reconstruction is the same with $i \to j$.
+
+\subsection{TVD slope limiters}
+
+In every limiter, the slope is set to zero whenever $\Delta_L\,\Delta_R \le 0$ (extremum or sign change); otherwise
+\begin{align}
+\text{minmod:}\quad
+  \sigma &\;=\; \operatorname{sign}(\Delta_L)\,\min\!\bigl(|\Delta_L|,\,|\Delta_R|\bigr),
+  \label{eq:limiters-app}\\
+\text{monotonized-central (MC):}\quad
+  \sigma &\;=\; \operatorname{sign}(\Delta_C)\,\min\!\bigl(2|\Delta_L|,\,2|\Delta_R|,\,|\Delta_C|\bigr),
+  \;\;\Delta_C = \tfrac{1}{2}(\Delta_L + \Delta_R), \\
+\text{van Leer:}\quad
+  \sigma &\;=\; \frac{2\,\Delta_L\,\Delta_R}{\Delta_L + \Delta_R}.
+\end{align}
+Minmod is the default in this report.
+
+\subsection{HLLD numerical flux}
+
+Starting from $U_L = $\textsc{PrimToCons}$(Q_L)$ and $U_R$, compute the bounding fast-wave speeds $S_L,S_R$, the entropy speed $S_M$, and the inner Alfven speeds $S^{*}_{L}, S^{*}_{R}$.  Build the four intermediate states $U^{*}_{L},\,U^{*}_{R},\,U^{**}_{L},\,U^{**}_{R}$ following Miyoshi and Kusano~\cite{miyoshi2005}, eqs.~38--67.  The intermediate fluxes follow from the conservation jump conditions:
+\begin{equation}
+F^{*}_{K} = F_{K} + S_K\,(U^{*}_{K} - U_{K}),
+\qquad
+F^{**}_{K} = F^{*}_{K} + S^{*}_{K}\,(U^{**}_{K} - U^{*}_{K}),
+\qquad K\in\{L,R\}.
+\label{eq:hlld-stars-app}
+\end{equation}
+The numerical flux at the face is selected from the wave region that contains $0$:
+\begin{equation}
+F_{i+1/2} \;=\; \begin{cases}
+F_L           & 0 \le S_L, \\
+F^{*}_{L}     & S_L < 0 \le S^{*}_{L}, \\
+F^{**}_{L}    & S^{*}_{L} < 0 \le S_M, \\
+F^{**}_{R}    & S_M < 0 \le S^{*}_{R}, \\
+F^{*}_{R}     & S^{*}_{R} < 0 \le S_R, \\
+F_R           & S_R < 0.
+\end{cases}
+\label{eq:hlld-select-app}
+\end{equation}
+
+\subsection{GLM Riemann solution at the face}
+
+The normal magnetic-field flux and the $\psi$ flux are not taken from HLLD; instead the GLM 2$\times$2 Riemann problem with eigenvalues $\pm c_h$ is solved exactly at the face,
+\begin{align}
+B^{*}_{n} &\;=\; \tfrac{1}{2}(B_{n,L} + B_{n,R})
+                 \;-\; \tfrac{1}{2}(\psi_R - \psi_L)/c_h,
+  \label{eq:glm-bn-app}\\
+\psi^{*}  &\;=\; \tfrac{1}{2}(\psi_L + \psi_R)
+                 \;-\; \tfrac{1}{2}\,c_h\,(B_{n,R} - B_{n,L}),
+  \label{eq:glm-psi-app}
+\end{align}
+and $F[B_n]$, $F[\psi]$ at the face are overwritten with $\psi^{*}$ and $c_h^{2}\,B^{*}_{n}$ respectively.
+
+\subsection{GLM parabolic damping}
+
+Between the RK stages, the parabolic damping $d\psi/dt = -(c_h/c_r)\psi$ is integrated analytically over the step,
+\begin{equation}
+\psi \;\leftarrow\; \psi\,\exp\!\bigl(-\Delta t\,c_h / c_r\bigr),
+\qquad c_r = 0.18.
+\label{eq:psi-damp-app}
+\end{equation}
+
+\subsection{SSP-RK2 time integration}
+
+With $L(U)$ defined by~\eqref{eq:semi-discrete-app}, the two-stage Shu--Osher update is
+\begin{equation}
+U^{*} = U^{n} + \Delta t\,L(U^{n}),
+\qquad
+U^{n+1} = \tfrac{1}{2}\bigl(U^{n} + U^{*} + \Delta t\,L(U^{*})\bigr).
+\label{eq:ssp-rk2-app}
+\end{equation}
+
 \section{Code Listings}
 
 The full source is at the repository root under \texttt{vortex/}. Key modules are listed below.
