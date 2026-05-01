@@ -9,9 +9,7 @@
 \tableofcontents
 \clearpage
 
-%====================================================================
 \section{Introduction and Problem Motivation}
-%====================================================================
 
 Magnetohydrodynamics (MHD) describes an electrically conducting fluid
 in which the flow and the magnetic field evolve as a single coupled
@@ -72,9 +70,7 @@ published density-and-pressure pattern of Londrillo and Del
 Zanna~\cite{londrillo2000} and the publicly hosted Athena test-suite
 snapshot at t = 0.5~\cite{athena_orszag_tang}.
 
-%====================================================================
 \section{Mathematical Model}
-%====================================================================
 
 In two spatial dimensions the ideal MHD system takes the conservative
 form
@@ -193,9 +189,7 @@ single extra equation, the new coupling only touches the normal
 magnetic-field component at each face, and the other seven MHD
 equations are unchanged.  That is the approach used here.
 
-%====================================================================
 \section{Numerical Model}
-%====================================================================
 
 \subsection{Finite volume discretization}
 
@@ -397,9 +391,7 @@ boundary conditions.  For Orszag-Tang all four boundaries are
 periodic; outflow and reflective kinds are implemented but not
 exercised in this report.
 
-%====================================================================
 \section{Validation}
-%====================================================================
 
 \subsection{Qualitative comparison on the Orszag-Tang vortex}
 
@@ -551,9 +543,7 @@ conserved to machine precision at every logged step of the run
 expected from a conservative finite-volume update and is a useful
 consistency check on the flux computation and the boundary fills.
 
-%====================================================================
 \section{Discussion of Results}
-%====================================================================
 
 \subsection{Accuracy}
 
@@ -619,9 +609,7 @@ are explicable by the choice of limiter (minmod here vs MC or
 third-order reconstruction in Athena++), grid resolution, and the
 specific form of divergence control.
 
-%====================================================================
 \section{Conclusions}
-%====================================================================
 
 A 2D ideal MHD finite volume solver was implemented from scratch in
 Python.  The spatial discretization is MUSCL-minmod on primitive
@@ -640,10 +628,8 @@ for strict divergence-free evolution; resistive MHD; 3D; AMR; and a
 Numba- or JAX-compiled core to lift the practical resolution
 ceiling.
 
-%====================================================================
 \appendix
 \section{Code Listings}
-%====================================================================
 
 The full source is at the repository root under \texttt{vortex/}.
 Key modules are listed below.
