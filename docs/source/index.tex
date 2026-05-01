@@ -35,7 +35,7 @@ In two spatial dimensions the ideal MHD system takes the conservative form
 \qquad
 U = \begin{pmatrix} \rho \\ \rho u \\ \rho v \\ \rho w \\ B_x \\ B_y \\ B_z \\ E \end{pmatrix},
 \end{equation}
-with all three velocity components and all three magnetic-field components carried even in two spatial dimensions so that Alfven waves propagating out of the plane are represented correctly~\cite{powell1999}.  The total energy density is
+with all three velocity components and all three magnetic-field components carried even in two spatial dimensions so that Alfven waves propagating out of the plane are represented correctly~\cite{powell1999}.  The GLM cleaning scalar $\psi$ adds a 9th component to the implementation; it is suppressed in~(1) for clarity and is introduced in \S3.4.  The total energy density is
 \begin{equation}
 E \;=\; \frac{p}{\gamma - 1}
        \;+\; \tfrac{1}{2}\,\rho\,(u^{2}+v^{2}+w^{2})
@@ -73,7 +73,7 @@ For a CFD reader, it helps to map each row of $F(U)$ back to a familiar concept:
 \begin{itemize}
   \item Row 1 ($\rho u$) is the standard mass flux---unchanged from Euler.
   \item Rows 2--4 are the momentum flux.  The diagonal entry ($\rho u^{2} + p_T - B_x^{2}$) carries gas pressure and the \emph{magnetic pressure} $\tfrac{1}{2}|B|^{2}$ inside $p_T$, plus a tension term $-B_x^{2}$ that pulls fluid along field lines. The off-diagonal entries ($-B_xB_y$, $-B_xB_z$) are the \emph{Maxwell stresses}: the field shears the fluid the same way a tense rubber band would.
-  \item Row 5 (the $B_x$-flux row, written here as $0$) reflects the fact that ideal MHD has no x-direction transport of $B_x$ in 1D; the GLM (generalized Lagrange multiplier) scheme of \S2.1 fills this entry with a small extra coupling to the cleaning scalar $\psi$.
+  \item Row 5 (the $B_x$-flux row, written here as $0$) reflects the fact that ideal MHD has no x-direction transport of $B_x$ in 1D; the GLM (generalized Lagrange multiplier) scheme (\S3.4) couples this entry to the cleaning scalar $\psi$.
   \item Rows 6--7 are the induction equation in flux form.  The expression $uB_y - vB_x$ is the $z$-component of the \emph{electric field} $-\mathbf{v}\times\mathbf{B}$ that the moving fluid generates---this is the term that drags field lines along with the flow (``frozen-in flux'').
   \item Row 8 is the energy flux.  The hydrodynamic part is the Euler total enthalpy $(E + p_T)u$; the new piece $-B_x(\mathbf{v}\cdot\mathbf{B})$ is the Poynting flux, which transports magnetic energy with the fluid.
 \end{itemize}
