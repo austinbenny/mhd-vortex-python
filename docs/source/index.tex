@@ -73,7 +73,7 @@ For a CFD reader, it helps to map each row of $F(U)$ back to a familiar concept:
 \begin{itemize}
   \item Row 1 ($\rho u$) is the standard mass flux---unchanged from Euler.
   \item Rows 2--4 are the momentum flux.  The diagonal entry ($\rho u^{2} + p_T - B_x^{2}$) carries gas pressure and the \emph{magnetic pressure} $\tfrac{1}{2}|B|^{2}$ inside $p_T$, plus a tension term $-B_x^{2}$ that pulls fluid along field lines. The off-diagonal entries ($-B_xB_y$, $-B_xB_z$) are the \emph{Maxwell stresses}: the field shears the fluid the same way a tense rubber band would.
-  \item Row 5 (the $B_x$-flux row, written here as $0$) reflects the fact that ideal MHD has no x-direction transport of $B_x$ in 1D; the GLM scheme of \S2.1 fills this entry with a small extra coupling to the cleaning scalar $\psi$.
+  \item Row 5 (the $B_x$-flux row, written here as $0$) reflects the fact that ideal MHD has no x-direction transport of $B_x$ in 1D; the GLM (generalized Lagrange multiplier) scheme of \S2.1 fills this entry with a small extra coupling to the cleaning scalar $\psi$.
   \item Rows 6--7 are the induction equation in flux form.  The expression $uB_y - vB_x$ is the $z$-component of the \emph{electric field} $-\mathbf{v}\times\mathbf{B}$ that the moving fluid generates---this is the term that drags field lines along with the flow (``frozen-in flux'').
   \item Row 8 is the energy flux.  The hydrodynamic part is the Euler total enthalpy $(E + p_T)u$; the new piece $-B_x(\mathbf{v}\cdot\mathbf{B})$ is the Poynting flux, which transports magnetic energy with the fluid.
 \end{itemize}
@@ -102,9 +102,9 @@ In semi-discrete form, the update for cell $(i,j)$ is
     -\frac{G_{i,j+1/2} - G_{i,j-1/2}}{\Delta y},
 \label{eq:semi-discrete}
 \end{equation}
-where $F_{i\pm 1/2,j}$ and $G_{i,j\pm 1/2}$ are the numerical fluxes returned by the HLLD Riemann solver at the four faces of the cell.
+where $F_{i\pm 1/2,j}$ and $G_{i,j\pm 1/2}$ are the numerical fluxes returned by the HLLD (Harten--Lax--van Leer with two Discontinuities) Riemann solver at the four faces of the cell.
 
-\Cref{fig:stencil} is a schematic of the MUSCL stencil used for the x-direction Riemann problem on one row of cells.  Two ghost layers are required on every side of the interior so that the three-cell stencil $U_{i-1},U_i,U_{i+1}$ that feeds the slope-limited reconstruction is always available.
+\Cref{fig:stencil} is a schematic of the MUSCL (monotonic upstream-centered scheme for conservation laws) stencil used for the x-direction Riemann problem on one row of cells.  Two ghost layers are required on every side of the interior so that the three-cell stencil $U_{i-1},U_i,U_{i+1}$ that feeds the slope-limited reconstruction is always available.
 
 \begin{figure}[H]
 \centering
@@ -168,7 +168,7 @@ Q_{L,\,i+1/2} = Q_i + \tfrac{1}{2}\sigma_i,
 Q_{R,\,i+1/2} = Q_{i+1} - \tfrac{1}{2}\sigma_{i+1}.
 \label{eq:muscl}
 \end{equation}
-The current implementation offers three TVD limiters; whenever $\Delta_L\,\Delta_R \le 0$ the slope is set to zero, otherwise
+The current implementation offers three TVD (total-variation-diminishing) limiters; whenever $\Delta_L\,\Delta_R \le 0$ the slope is set to zero, otherwise
 \begin{align}
 \text{minmod:}\quad
   \sigma &= \operatorname{sign}(\Delta_L)\,
@@ -184,7 +184,7 @@ Minmod is the default.  Reconstructing primitives rather than conserved variable
 
 \subsection{Riemann solver: HLLD}
 
-The approximate Riemann problem is solved with the HLLD method of Miyoshi and Kusano~\cite{miyoshi2005}.  HLLD splits the five-wave MHD fan---two outer fast waves, two rotational Alfven waves, and a middle entropy wave---into four intermediate states.  For coplanar Riemann problems it exactly resolves isolated discontinuities, and with $B = 0$ it reduces to HLLC for pure hydrodynamics.
+The approximate Riemann problem is solved with the HLLD method of Miyoshi and Kusano~\cite{miyoshi2005}.  HLLD splits the five-wave MHD fan---two outer fast waves, two rotational Alfven waves, and a middle entropy wave---into four intermediate states.  For coplanar Riemann problems it exactly resolves isolated discontinuities, and with $B = 0$ it reduces to HLLC---the Harten--Lax--van Leer (HLL) scheme augmented with the Contact wave---for pure hydrodynamics.
 
 The solver builds the intermediate states in three steps.  First it forms the entropy-wave speed $S_M$ from the HLL average.  It then constructs the two starred states $U^{*}_{L}$ and $U^{*}_{R}$ adjacent to $S_M$.  Finally it forms two double-starred states $U^{**}_{L}$ and $U^{**}_{R}$ that carry the rotational discontinuities across the contact wave~\cite{miyoshi2005}.
 
@@ -211,7 +211,7 @@ The GLM formulation augments the MHD system with a scalar $\psi$ that couples to
   \psi^{*}   &= \tfrac{1}{2}(\psi_L + \psi_R)
                - \tfrac{1}{2}\,c_h\,(B_{n,R} - B_{n,L}).
 \end{align}
-These replace the ``trivial'' normal-B flux and the psi-equation flux in the HLLD evaluation.  The parabolic damping $d\psi/dt = -(c_h/c_r)\psi$ is integrated analytically over each RK stage of length $\Delta t$ with $c_r = 0.18$, the value recommended in~\cite{dedner2002}, giving the closed-form update
+These replace the ``trivial'' normal-B flux and the psi-equation flux in the HLLD evaluation.  The parabolic damping $d\psi/dt = -(c_h/c_r)\psi$ is integrated analytically over each Runge--Kutta (RK) stage of length $\Delta t$ with $c_r = 0.18$, the value recommended in~\cite{dedner2002}, giving the closed-form update
 \begin{equation}
 \psi \;\leftarrow\; \psi\,\exp\!\bigl(-\Delta t\,c_h / c_r\bigr).
 \label{eq:psi-damp}
@@ -220,13 +220,13 @@ The cleaning speed $c_h$ is updated once per step to the current global maximum 
 
 \subsection{Time integration}
 
-The semi-discrete scheme is advanced with the strong-stability- preserving RK2 method of Shu and Osher~\cite{shu1988},
+The semi-discrete scheme is advanced with the strong-stability-preserving RK2 (SSP-RK2) method of Shu and Osher~\cite{shu1988},
 \begin{equation}
 U^{*} = U^{n} + \Delta t\,L(U^{n}),
 \qquad
 U^{n+1} = \tfrac{1}{2}\bigl(U^{n} + U^{*} + \Delta t\,L(U^{*})\bigr),
 \end{equation}
-with $L(U) = -(\partial_x F + \partial_y G)$ evaluated on the interior cells.  The CFL condition uses the fast magnetosonic speed $c_f$ plus the cleaning speed $c_h$:
+with $L(U) = -(\partial_x F + \partial_y G)$ evaluated on the interior cells.  The CFL (Courant--Friedrichs--Lewy) condition uses the fast magnetosonic speed $c_f$ plus the cleaning speed $c_h$:
 \begin{equation}
 \Delta t \;=\; \mathrm{CFL}\,\cdot\,
   \frac{\min(\Delta x, \Delta y)}
@@ -409,7 +409,7 @@ The Athena~\cite{athena_orszag_tang} and PLUTO test suites are the de-facto comm
 
 A 2D ideal MHD finite volume solver was implemented from scratch in Python.  The spatial discretization is MUSCL-minmod on primitive variables; the Riemann solver is HLLD~\cite{miyoshi2005}; the divergence constraint is handled with hyperbolic GLM cleaning~\cite{dedner2002}; and time integration uses SSP-RK2~\cite{shu1988}.  Validation on the Orszag-Tang vortex reproduces the canonical density and pressure patterns at $t = 0.5$~\cite{londrillo2000,athena_orszag_tang}, conserves mass and energy to machine precision, bounds the maximum divergence error via GLM, and exhibits the expected between-first-and- second-order convergence rate on a shock-dominated 2D flow.
 
-Natural extensions are: a constrained-transport alternative to GLM for strict divergence-free evolution; resistive MHD; 3D; AMR; and a Numba- or JAX-compiled core to lift the practical resolution ceiling.
+Natural extensions are: a constrained-transport alternative to GLM for strict divergence-free evolution; resistive MHD; 3D; AMR (adaptive mesh refinement); and a Numba- or JAX-compiled core to lift the practical resolution ceiling.
 
 \appendix
 

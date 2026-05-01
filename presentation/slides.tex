@@ -28,6 +28,35 @@
   \tableofcontents
 \end{frame}
 
+\begin{frame}{Acronyms used in this deck}
+  \small
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}\setlength\itemsep{0.2em}
+        \item \emph{MHD}: magnetohydrodynamics
+        \item \emph{FVM}: finite-volume method
+        \item \emph{IC} / \emph{BC}: initial / boundary conditions
+        \item \emph{CFL}: Courant--Friedrichs--Lewy
+        \item \emph{TVD}: total-variation diminishing
+        \item \emph{MUSCL}: monotonic upstream-centered scheme for conservation laws
+        \item \emph{MC}: monotonized central (limiter)
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}\setlength\itemsep{0.2em}
+        \item \emph{HLL}: Harten--Lax--van Leer
+        \item \emph{HLLC}: HLL with Contact wave
+        \item \emph{HLLD}: HLL with two Discontinuities (Miyoshi \& Kusano, MHD)
+        \item \emph{GLM}: generalized Lagrange multiplier (divergence cleaning)
+        \item \emph{CT}: constrained transport
+        \item \emph{SSP-RK2}: strong-stability-preserving Runge--Kutta, 2 stages
+        \item \emph{EMF}: electromotive force
+        \item \emph{AMR}: adaptive mesh refinement
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \section{Introduction and Problem Motivation}
 
 \begin{frame}{Why MHD}
@@ -90,7 +119,7 @@
     \item $\rho$: mass density. $\mathbf{v} = (u,v,w)$: velocity. $\mathbf{B} = (B_x,B_y,B_z)$: magnetic field.
     \item $E$: total energy density (internal $+$ kinetic $+$ magnetic).
     \item $p$: gas pressure. $\tfrac{1}{2}|\mathbf{B}|^{2}$: \emph{magnetic pressure}. $p_T$: total (gas $+$ magnetic).
-    \item All 3 velocity and field components carried even in 2D so out-of-plane Alfven waves resolve correctly~\cite{powell1999}.
+    % \item All 3 velocity and field components carried even in 2D so out-of-plane Alfven waves resolve correctly~\cite{powell1999}.
     \item Seven-wave fan: 2 fast, 2 Alfven, 2 slow, 1 entropy~\cite{brio1988,miyoshi2005}.
   \end{itemize}
 \end{frame}
