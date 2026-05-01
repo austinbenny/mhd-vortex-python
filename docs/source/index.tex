@@ -220,7 +220,7 @@ The GLM formulation augments the MHD system with a scalar $\psi$ that couples to
   \psi^{*}   &= \tfrac{1}{2}(\psi_L + \psi_R)
                - \tfrac{1}{2}\,c_h\,(B_{n,R} - B_{n,L}).
 \end{align}
-These replace the ``trivial'' normal-B flux and the psi-equation flux in the HLLD evaluation.  The parabolic damping $d\psi/dt = -(c_h/c_r)\psi$ is integrated analytically over each Runge--Kutta (RK) stage of length $\Delta t$ with $c_r = 0.18$, the value recommended in~\cite{dedner2002}, giving the closed-form update
+These replace the ``trivial'' normal-B flux and the psi-equation flux in the HLLD evaluation.  The parabolic damping $d\psi/dt = -(c_h/c_r)\psi$ is integrated analytically once per step (after the SSP-RK2 update) with $c_r = 0.18$, the value recommended in~\cite{dedner2002}, giving the closed-form update
 \begin{equation}
 \psi \;\leftarrow\; \psi\,\exp\!\bigl(-\Delta t\,c_h / c_r\bigr).
 \label{eq:psi-damp}
