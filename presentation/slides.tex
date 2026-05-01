@@ -59,7 +59,9 @@
       \end{itemize}
     \end{column}
     \begin{column}{0.45\textwidth}
-      \includegraphics[width=\linewidth]{rho_final.pdf}
+      \centering
+      \includegraphics[width=\linewidth]{rho_final.pdf} \\
+      \scriptsize density $\rho(x,y,\,t = 0.5)$
     \end{column}
   \end{columns}
 \end{frame}
@@ -67,18 +69,65 @@
 \section{Mathematical Model}
 
 \begin{frame}{Ideal MHD in conservative form}
-  \begin{equation*}
-  \frac{\partial U}{\partial t} + \frac{\partial F}{\partial x} + \frac{\partial G}{\partial y} = 0,
-  \quad
-  U = (\rho,\; \rho\mathbf{v},\; \mathbf{B},\; E)^{T}
-  \end{equation*}
-  with $E = p/(\gamma-1) + \tfrac{1}{2}\rho|\mathbf{v}|^{2} + \tfrac{1}{2}|\mathbf{B}|^{2}$, $p_T = p + \tfrac{1}{2}|\mathbf{B}|^{2}$~\cite{powell1999}.
+  \[
+  \frac{\partial U}{\partial t} + \frac{\partial F(U)}{\partial x} + \frac{\partial G(U)}{\partial y} = 0,
+  \qquad
+  U = (\rho,\; \rho u,\; \rho v,\; \rho w,\; B_x,\; B_y,\; B_z,\; E)^{T}.
+  \]
+  Closure (ideal gas, $\gamma = 5/3$):
+  \[
+  E = \frac{p}{\gamma - 1} + \tfrac{1}{2}\rho|\mathbf{v}|^{2} + \tfrac{1}{2}|\mathbf{B}|^{2},
+  \qquad
+  p_T = p + \tfrac{1}{2}|\mathbf{B}|^{2}.
+  \]
   \begin{itemize}
-    \item 8 conserved variables; all 3 velocity + field components, even in 2D.
-    \item New vs Euler: magnetic pressure $\tfrac{1}{2}|B|^{2}$ in $p_T$, magnetic tension $-B_iB_j$, magnetic energy in $E$.
-    \item Induction-equation flux $u B_y - v B_x$ is the motional EMF $-\mathbf{v}\times\mathbf{B}$: drags field lines with the flow.
+    \item $\rho$: mass density. $\mathbf{v} = (u,v,w)$: velocity. $\mathbf{B} = (B_x,B_y,B_z)$: magnetic field.
+    \item $E$: total energy density (internal $+$ kinetic $+$ magnetic).
+    \item $p$: gas pressure. $\tfrac{1}{2}|\mathbf{B}|^{2}$: \emph{magnetic pressure}. $p_T$: total (gas $+$ magnetic).
+    \item All 3 velocity and field components carried even in 2D so out-of-plane Alfven waves resolve correctly~\cite{powell1999}.
     \item Seven-wave fan: 2 fast, 2 Alfven, 2 slow, 1 entropy~\cite{brio1988,miyoshi2005}.
-    \item Ideal-gas closure, $\gamma = 5/3$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Flux vectors $F(U)$ and $G(U)$}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \footnotesize
+      \[
+      F(U) = \begin{pmatrix}
+      \rho u \\
+      \rho u^{2} + p_T - B_x^{2} \\
+      \rho u v - B_x B_y \\
+      \rho u w - B_x B_z \\
+      0 \\
+      u B_y - v B_x \\
+      u B_z - w B_x \\
+      (E + p_T)\,u - B_x(\mathbf{v}\!\cdot\!\mathbf{B})
+      \end{pmatrix}
+      \]
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \footnotesize
+      \[
+      G(U) = \begin{pmatrix}
+      \rho v \\
+      \rho v u - B_y B_x \\
+      \rho v^{2} + p_T - B_y^{2} \\
+      \rho v w - B_y B_z \\
+      v B_x - u B_y \\
+      0 \\
+      v B_z - w B_y \\
+      (E + p_T)\,v - B_y(\mathbf{v}\!\cdot\!\mathbf{B})
+      \end{pmatrix}
+      \]
+    \end{column}
+  \end{columns}
+  \vspace{0.2em}
+  \begin{itemize}\scriptsize
+    \item Row 1: \emph{mass flux} $\rho u,\;\rho v$ (Euler).
+    \item Rows 2--4: \emph{momentum flux}. Diagonal carries total pressure $p_T$ minus a tension $-B_n^{2}$; off-diagonal $-B_iB_j$ are the \emph{Maxwell stresses}.
+    \item Rows 5--7: \emph{induction equation}. The flux $uB_y - vB_x$ is the $z$-component of the motional EMF $-\mathbf{v}\times\mathbf{B}$---this drags field lines with the flow. The diagonal $B_n$-flux row is $0$; GLM (next slide) fills it in.
+    \item Row 8: \emph{total-energy flux}. The $-B_n(\mathbf{v}\!\cdot\!\mathbf{B})$ piece is the \emph{Poynting flux}---transports magnetic energy with the fluid.
   \end{itemize}
 \end{frame}
 
@@ -100,8 +149,13 @@
 \begin{frame}{Computational mesh}
   \begin{itemize}\scriptsize
     \item Uniform $128\times 128$ Cartesian grid, $\Delta x = \Delta y = 1/128$.
-    \item Two ghost layers on every side (periodic fills for Orszag-Tang).
-    \item Left: initial velocity; right: initial magnetic field.
+    \item Two ghost layers per side (periodic fills for Orszag-Tang).
+    \item ICs (Londrillo \& Del Zanna~\cite{londrillo2000}): $\rho = 1$, $p = 1/\gamma$, $B_0 = 1/\gamma$, and
+      \begin{align*}
+      \mathbf{v}(x,y,0) &= (-\sin 2\pi y,\,\sin 2\pi x,\,0), \\
+      \mathbf{B}(x,y,0) &= B_0\,(-\sin 2\pi y,\,\sin 4\pi x,\,0).
+      \end{align*}
+    \item Left: $\mathbf{v}$ overlay. Right: $\mathbf{B}$ overlay.
   \end{itemize}
   \vspace{0.2em}
   \centering
@@ -143,7 +197,8 @@
   \begin{columns}[c]
     \begin{column}{0.55\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{rho_final.pdf}
+      \includegraphics[width=\linewidth]{rho_final.pdf} \\
+      \scriptsize $\rho(x,y,\,t = 0.5)$
     \end{column}
     \begin{column}{0.45\textwidth}
       \begin{itemize}\small
@@ -159,11 +214,13 @@
   \begin{columns}[c]
     \begin{column}{0.5\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{p_final.pdf}
+      \includegraphics[width=\linewidth]{p_final.pdf} \\
+      \scriptsize $p = (\gamma-1)\bigl(E - \tfrac{1}{2}\rho|\mathbf{v}|^{2} - \tfrac{1}{2}|\mathbf{B}|^{2}\bigr)$
     \end{column}
     \begin{column}{0.5\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{pmag_final.pdf}
+      \includegraphics[width=\linewidth]{pmag_final.pdf} \\
+      \scriptsize $p_\text{mag} = \tfrac{1}{2}|\mathbf{B}|^{2}$
     \end{column}
   \end{columns}
   \vspace{0.3em}
@@ -177,22 +234,22 @@
   \begin{columns}[c]
     \begin{column}{0.33\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{rho_t0p100.pdf}\\ \scriptsize t = 0.1
+      \includegraphics[width=\linewidth]{rho_t0p100.pdf}\\ \scriptsize $\rho(x,y,\,t=0.1)$
     \end{column}
     \begin{column}{0.33\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{rho_t0p300.pdf}\\ \scriptsize t = 0.3
+      \includegraphics[width=\linewidth]{rho_t0p300.pdf}\\ \scriptsize $\rho(x,y,\,t=0.3)$
     \end{column}
     \begin{column}{0.33\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{rho_final.pdf}\\ \scriptsize t = 0.5
+      \includegraphics[width=\linewidth]{rho_final.pdf}\\ \scriptsize $\rho(x,y,\,t=0.5)$
     \end{column}
   \end{columns}
   \vspace{0.3em}
   \begin{itemize}\scriptsize
-    \item t = 0.1: still smooth, the vortices are just forming.
-    \item t = 0.3: diagonal shocks have formed; bow-tie compression starts.
-    \item t = 0.5: fully-developed current sheet and bounding shocks.
+    \item $t = 0.1$: still smooth, the vortices are just forming.
+    \item $t = 0.3$: diagonal shocks have formed; bow-tie compression starts.
+    \item $t = 0.5$: fully-developed current sheet and bounding shocks.
   \end{itemize}
 \end{frame}
 
@@ -200,7 +257,8 @@
   \begin{columns}[c]
     \begin{column}{0.55\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{convergence.pdf}
+      \includegraphics[width=\linewidth]{convergence.pdf} \\
+      \scriptsize $\|\rho_h - \rho_\text{ref}\|_p$ vs grid resolution, $\rho_\text{ref}$ from $256^{2}$
     \end{column}
     \begin{column}{0.45\textwidth}
       \centering\scriptsize
@@ -224,7 +282,8 @@
   \begin{columns}[c]
     \begin{column}{0.55\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{divb_history.pdf}
+      \includegraphics[width=\linewidth]{divb_history.pdf} \\
+      \scriptsize $\max_{i,j} |\nabla\cdot B|_{i,j}(t)$, centered differences on cell-centered $B$
     \end{column}
     \begin{column}{0.45\textwidth}
       \begin{itemize}
