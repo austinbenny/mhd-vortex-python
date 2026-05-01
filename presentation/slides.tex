@@ -153,7 +153,7 @@
 \section{Numerical Model}
 
 \begin{frame}{Computational mesh}
-  \begin{itemize}\scriptsize
+  \begin{itemize}
     \item Uniform $128\times 128$ Cartesian grid, $\Delta x = \Delta y = 1/128$.
     \item Two ghost layers per side (periodic fills for Orszag-Tang).
     \item ICs (Londrillo \& Del Zanna~\cite{londrillo2000}): $\rho = 1$, $p = 1/\gamma$, $B_0 = 1/\gamma$, and
@@ -161,11 +161,13 @@
       \mathbf{v}(x,y,0) &= (-\sin 2\pi y,\,\sin 2\pi x,\,0), \\
       \mathbf{B}(x,y,0) &= B_0\,(-\sin 2\pi y,\,\sin 4\pi x,\,0).
       \end{align*}
-    \item Left: $\mathbf{v}$ overlay. Right: $\mathbf{B}$ overlay.
+    \item Left panel: $\mathbf{v}$ overlay. Right panel: $\mathbf{B}$ overlay.
   \end{itemize}
-  \vspace{0.2em}
+\end{frame}
+
+\begin{frame}{Computational mesh}
   \centering
-  \includegraphics[width=0.78\textwidth]{mesh_preview.pdf}
+  \includegraphics[width=0.95\textwidth]{mesh_preview.pdf}
 \end{frame}
 
 \begin{frame}{Scheme at a glance}
