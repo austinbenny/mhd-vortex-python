@@ -24,10 +24,13 @@
   \titlepage
 \end{frame}
 
+\iffalse  % long-talk slide: Outline (skipped for 5-min version)
 \begin{frame}{Outline}
   \tableofcontents
 \end{frame}
+\fi
 
+\iffalse  % long-talk slide: Acronyms (kept as backup for Q&A)
 \begin{frame}{Acronyms used in this deck}
   \small
   \begin{columns}[T]
@@ -56,6 +59,7 @@
     \end{column}
   \end{columns}
 \end{frame}
+\fi
 
 \section{Introduction and Problem Motivation}
 
@@ -187,6 +191,7 @@
 
 \section{Numerical Model}
 
+\iffalse  % long-talk slides: Computational mesh (text + image)
 \begin{frame}{Computational mesh}
   \begin{itemize}
     \item Uniform $128\times 128$ Cartesian grid, $\Delta x = \Delta y = 1/128$.
@@ -204,6 +209,7 @@
   \centering
   \includegraphics[width=0.95\textwidth]{mesh_preview.pdf}
 \end{frame}
+\fi
 
 \begin{frame}{Scheme at a glance}
   \begin{itemize}
@@ -215,6 +221,7 @@
   \end{itemize}
 \end{frame}
 
+\iffalse  % long-talk slide: HLLD wave pattern (covered by scheme-at-a-glance for short version)
 \begin{frame}{HLLD wave pattern}
     \begin{itemize}
       \item Five-wave approximation to the full seven-wave MHD fan~\cite{miyoshi2005}.
@@ -233,6 +240,7 @@
       \scriptsize Wave regions across the x-face.
     \end{center}
 \end{frame}
+\fi
 
 \section{Validation and Results}
 
@@ -253,6 +261,7 @@
   \end{columns}
 \end{frame}
 
+\iffalse  % long-talk slides: pressure plots and time evolution
 \begin{frame}{Thermal and magnetic pressure, t = 0.5}
   \begin{columns}[c]
     \begin{column}{0.5\textwidth}
@@ -295,6 +304,7 @@
     \item $t = 0.5$: fully-developed current sheet and bounding shocks.
   \end{itemize}
 \end{frame}
+\fi
 
 \begin{frame}{Convergence in density}
   \begin{columns}[c]
@@ -340,6 +350,7 @@
 
 \section{Discussion of Results}
 
+\iffalse  % long-talk slides: discussion (accuracy, convergence rate, limitations)
 \begin{frame}{Accuracy vs limiter choice}
   \begin{itemize}
     \item At $128^{2}$ here: $\rho_{\min}\approx 0.47$, $\rho_{\max}\approx 2.16$.
@@ -366,6 +377,7 @@
     \item Linear reconstruction (MUSCL); no WENO, no higher-order time integration.
   \end{itemize}
 \end{frame}
+\fi
 
 \section{Conclusions}
 
