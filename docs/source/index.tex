@@ -21,15 +21,46 @@ negligible~\cite{chen2016,freidberg2014}.  That regime covers the
 solar wind, tokamak confinement, astrophysical jets, and the Earth's
 magnetosphere.
 
-MHD differs from the Euler system in three ways: the Lorentz force
-couples the fluid to the field, three new wave families appear (fast
-and slow magnetosonic, plus Alfven), and Maxwell's equations impose
-the solenoidal constraint div(B) = 0.
+A reader who has seen the Euler equations will recognize most of MHD:
+mass, momentum, and energy conservation on a moving compressible
+fluid.  Three things are new, all stemming from the magnetic field $B$.
+
+\emph{The Lorentz force.}  A conducting fluid in motion behaves like
+a distributed electric current.  Whenever a current sits in a
+magnetic field, every cubic meter of fluid feels a body force
+$\mathbf{J}\times\mathbf{B}$---the Lorentz force.  In the conservative
+form used below, this body force is repackaged as part of the
+momentum flux: a \emph{magnetic pressure} $\tfrac{1}{2}|B|^{2}$ that
+adds to the gas pressure and a \emph{magnetic tension} along field
+lines that shows up as the off-diagonal $B_iB_j$ terms.  The same
+flow that feels this force also distorts the field: in the ideal
+limit, magnetic field lines are ``frozen'' into the fluid and move
+with it.  Fluid and field are tied together at every point.
+
+\emph{Three new wave families.}  Euler has one acoustic speed; MHD
+has three.  \emph{Fast magnetosonic} waves are sound waves in which
+gas pressure and magnetic pressure compress in phase.  \emph{Slow
+magnetosonic} waves are sound waves in which they fight each other
+and the wave runs slower.  \emph{Alfven} waves are transverse
+oscillations of the field, like waves on a stretched string with
+magnetic tension as the restoring force.  Each family travels in two
+directions, plus the entropy/contact wave familiar from Euler, giving
+seven wave families in 1D MHD.
+
+\emph{The divergence constraint.}  Maxwell's equations forbid
+magnetic monopoles, so $\nabla\cdot B = 0$ everywhere.  Field lines
+have no sources or sinks; whatever flux enters a closed surface must
+leave it.  An exact solution preserves this for all time, but a
+discrete solver does not, and an uncontrolled cell-centered
+divergence shows up as a spurious force parallel to $B$.
 
 A practical finite-volume solver therefore has to resolve the
 seven-wave MHD Riemann fan, control the divergence constraint
-numerically, and stay robust at strong shocks and in low-beta regions
-where magnetic pressure dominates.
+numerically, and stay robust at strong shocks and in \emph{low-beta}
+regions.  Plasma beta is the ratio
+$\beta = p / (\tfrac{1}{2}|B|^{2})$ of gas pressure to magnetic
+pressure; low-beta means the magnetic field carries most of the
+energy, which makes wave speeds high and stable updates harder.
 
 The goal of this project is to build such a solver from scratch in
 Python and to validate it on the 2D Orszag-Tang vortex.  The
@@ -95,23 +126,62 @@ Closure is by the ideal-gas relation
 $p = (\gamma-1)(E - \tfrac{1}{2}\rho |v|^{2} - \tfrac{1}{2}|B|^{2})$
 with $\gamma = 5/3$.
 
+For a CFD reader, it helps to map each row of $F(U)$ back to a
+familiar concept:
+\begin{itemize}
+  \item Row 1 ($\rho u$) is the standard mass flux---unchanged from
+    Euler.
+  \item Rows 2--4 are the momentum flux.  The diagonal entry
+    ($\rho u^{2} + p_T - B_x^{2}$) carries gas pressure and the
+    \emph{magnetic pressure} $\tfrac{1}{2}|B|^{2}$ inside $p_T$, plus
+    a tension term $-B_x^{2}$ that pulls fluid along field lines.
+    The off-diagonal entries ($-B_xB_y$, $-B_xB_z$) are the
+    \emph{Maxwell stresses}: the field shears the fluid the same way
+    a tense rubber band would.
+  \item Row 5 (the $B_x$-flux row, written here as $0$) reflects the
+    fact that ideal MHD has no x-direction transport of $B_x$ in 1D;
+    the GLM scheme of \S2.1 fills this entry with a small extra
+    coupling to the cleaning scalar $\psi$.
+  \item Rows 6--7 are the induction equation in flux form.  The
+    expression $uB_y - vB_x$ is the $z$-component of the
+    \emph{electric field} $-\mathbf{v}\times\mathbf{B}$ that the
+    moving fluid generates---this is the term that drags field lines
+    along with the flow (``frozen-in flux'').
+  \item Row 8 is the energy flux.  The hydrodynamic part is the
+    Euler total enthalpy $(E + p_T)u$; the new piece
+    $-B_x(\mathbf{v}\cdot\mathbf{B})$ is the Poynting flux, which
+    transports magnetic energy with the fluid.
+\end{itemize}
+The total energy density~(2) carries one extra term beyond Euler:
+the \emph{magnetic energy} $\tfrac{1}{2}|B|^{2}$.  Whenever $B$ is
+strong this term dominates the budget.
+
 The system is hyperbolic but not strictly so: the seven wave families
 of the 1D Riemann problem (two fast magnetosonic, two Alfven, two
 slow magnetosonic, and one entropy/contact) can degenerate when the
-normal magnetic field aligns with the propagation direction.  Any
-Riemann solver has to handle this gracefully.
+normal magnetic field aligns with the propagation direction---two
+wave speeds cross, and an ordinary eigenvector basis breaks down.
+Any Riemann solver has to handle this gracefully.
 
 \subsection{The divergence constraint}
 
-An exact solution of the ideal MHD equations satisfies
-$\nabla\cdot B = 0$ for all time if the initial data do.  A discrete
-finite volume scheme does not inherit this property
-automatically~\cite{balsara1999,powell1999}: the induction equation
+$\nabla\cdot B = 0$ is Gauss's law for magnetism: there are no
+magnetic monopoles, so field lines cannot start or end inside the
+domain.  The induction equation in MHD preserves this constraint
+analytically---the exact time evolution of $B$ is divergence-free if
+the initial data are.
+
+Discrete schemes do not inherit the property
+automatically~\cite{balsara1999,powell1999}.  The induction equation
 is updated from interface electric fields that, under piecewise
-reconstruction, produce a nonzero cell-centered divergence.  Left
-unchecked, this leads to an unphysical parallel-to-B Lorentz force,
-loss of momentum conservation, and eventual blow-up of the
-computation.
+reconstruction, produce a small but nonzero divergence at every cell
+center.  The physical consequence is direct: the Lorentz force has
+the form $(\nabla\times B)\times B$, which can be rewritten as
+$(B\cdot\nabla)B - \tfrac{1}{2}\nabla|B|^{2} - (\nabla\cdot B)\,B$.
+The last term is identically zero for an exact solution but becomes
+a spurious force \emph{parallel to $B$} as soon as the discrete
+divergence is nonzero, breaking momentum conservation and eventually
+blowing up the run.
 
 Three remedies are in wide use: staggered constrained-transport
 schemes~\cite{balsara1999,londrillo2000}, the Powell eight-wave

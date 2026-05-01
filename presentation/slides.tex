@@ -36,13 +36,25 @@
 
 \begin{frame}{Why MHD}
   \begin{itemize}
-    \item Magnetohydrodynamics couples fluid flow and magnetic field through the Lorentz force~\cite{chen2016,freidberg2014}.
-    \item Valid when plasma is collisional and magnetic Reynolds number is large:
-          solar wind, tokamaks, astrophysical jets, magnetospheres.
-    \item New physics vs Euler: Alfven and fast/slow magnetosonic waves,
-          the Maxwell stress, and the constraint $\nabla\cdot B = 0$.
+    \item A conducting fluid in motion is a distributed electric
+          current; the \emph{Lorentz force} $\mathbf{J}\times\mathbf{B}$
+          is a body force on every cell~\cite{chen2016,freidberg2014}.
+    \item ``Frozen-in flux'': in the ideal limit, field lines move
+          with the fluid. Fluid and field are tied together everywhere.
+    \item Valid when plasma is collisional and magnetic Reynolds
+          number is large: solar wind, tokamaks, astrophysical jets,
+          magnetospheres.
+    \item New physics vs Euler:
+      \begin{itemize}\small
+        \item \emph{Alfven} waves---transverse, like waves on a
+              string with magnetic tension as the restoring force.
+        \item \emph{Fast/slow magnetosonic} waves---sound waves
+              modified by magnetic pressure.
+        \item Maxwell stresses $-B_iB_j$ in the momentum flux.
+        \item The no-monopoles constraint $\nabla\cdot B = 0$.
+      \end{itemize}
   \end{itemize}
-  \vspace{0.5em}
+  \vspace{0.3em}
   \textbf{Project goal.} Build a 2D ideal MHD finite-volume solver in Python and validate it on the Orszag-Tang vortex.
 \end{frame}
 
@@ -75,7 +87,14 @@
   $E = p/(\gamma-1) + \tfrac{1}{2}\rho|\mathbf{v}|^{2} + \tfrac{1}{2}|\mathbf{B}|^{2}$
   and total pressure $p_T = p + \tfrac{1}{2}|\mathbf{B}|^{2}$~\cite{powell1999}.
   \begin{itemize}
-    \item Eight conserved variables; all three velocity and field components are carried in 2D.
+    \item Eight conserved variables; all three velocity and field components carried even in 2D.
+    \item New vs Euler: \emph{magnetic pressure} $\tfrac{1}{2}|B|^{2}$
+          inside $p_T$, \emph{magnetic tension} along field lines via
+          $-B_iB_j$, and \emph{magnetic energy} $\tfrac{1}{2}|B|^{2}$
+          in $E$.
+    \item Induction-equation flux $u B_y - v B_x$ is the $z$-component
+          of the motional electric field $-\mathbf{v}\times\mathbf{B}$:
+          this is what drags field lines along with the flow.
     \item Seven-wave fan: two fast magnetosonic, two Alfven, two slow magnetosonic, one entropy~\cite{brio1988,miyoshi2005}.
     \item Ideal-gas closure, $\gamma = 5/3$.
   \end{itemize}
@@ -83,9 +102,17 @@
 
 \begin{frame}{The divergence constraint}
   \begin{itemize}
-    \item Exact ideal MHD preserves $\nabla\cdot B = 0$ analytically.
-    \item A piecewise-constant Godunov update does not: centered finite-differences produce spurious divergence at cell centers~\cite{balsara1999,powell1999}.
-    \item Consequences: parallel-to-B Lorentz force, loss of momentum conservation, eventual blow-up.
+    \item $\nabla\cdot B = 0$ is Gauss's law for magnetism: no magnetic
+          monopoles, so field lines have no sources or sinks.
+    \item Exact ideal MHD preserves this analytically; piecewise-constant
+          Godunov updates do not---reconstructed interface fields produce
+          a small but nonzero divergence at every cell
+          center~\cite{balsara1999,powell1999}.
+    \item Consequence is direct: rewriting
+          $(\nabla\times B)\times B = (B\cdot\nabla)B - \tfrac{1}{2}\nabla|B|^{2}
+          - (\nabla\cdot B)B$, the last term becomes a spurious
+          force \emph{parallel to $B$}, breaks momentum conservation,
+          and eventually blows the run up.
     \item Remedies: constrained transport~\cite{balsara1999,londrillo2000}, Powell source terms~\cite{powell1999}, or hyperbolic GLM cleaning~\cite{dedner2002}.
     \item \textbf{This project uses GLM}: simpler to drop into an unstaggered FVM code, only adds one scalar $\psi$.
   \end{itemize}
